@@ -48,3 +48,7 @@ Thumbs.db
 # ===== Logs =====
 *.log
 logs/
+
+# ===== Local Docs =====
+PRD.md
+DEVELOPMENT_PLAN.md
