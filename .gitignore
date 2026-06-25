@@ -1,0 +1,50 @@
+# ===== Rust / Cargo =====
+debug
+target
+**/*.rs.bk
+*.pdb
+**/mutants.out*/
+rustc-ice-*.txt
+
+# ===== Node.js / Frontend =====
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# ===== Tauri =====
+src-tauri/target/
+src-tauri/gen/
+src-tauri/icons/
+*.dmg
+*.deb
+*.rpm
+*.msi
+*.AppImage
+
+# ===== Environment =====
+.env
+.env.local
+.env.*.local
+
+# ===== IDE / Editor =====
+# VS Code
+.vscode/
+# JetBrains
+.idea/
+*.iml
+# Vim
+*.swp
+*.swo
+*~
+
+# ===== macOS =====
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+
+# ===== Logs =====
+*.log
+logs/
