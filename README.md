@@ -108,8 +108,6 @@ nova-term/
 - [ ] 一期 MVP 发布
 - [ ] SSH / Telnet / 数据可视化（二期）
 
-详细计划见 [DEVELOPMENT_PLAN.md](./DEVELOPMENT_PLAN.md)。
-
 ## 📄 许可证
 
 [GPL v3](./LICENSE)
