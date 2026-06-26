@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "nova-term",
+  "productName": "NovaTerm",
   "version": "0.1.0",
   "identifier": "com.bit-dots.nova-term",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "nova-term",
+        "title": "NovaTerm",
         "width": 800,
         "height": 600
       }
