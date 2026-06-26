@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import LogMonitor from "./LogMonitor";
+import SendController from "./SendController";
 
 export default function MainPanel() {
   const [splitRatio, setSplitRatio] = useState(65);
@@ -47,8 +48,8 @@ export default function MainPanel() {
         <div className="h-0.5 w-6 rounded bg-text-muted" />
       </div>
 
-      <div className="flex flex-1 items-center justify-center text-sm text-text-muted">
-        发送区 (Send Controller)
+      <div className="flex flex-1">
+        <SendController />
       </div>
     </div>
   );

@@ -2,16 +2,20 @@ import { useState } from "react";
 import ActivityBar, { type TabId } from "./components/ActivityBar";
 import Sidebar from "./components/Sidebar";
 import MainPanel from "./components/MainPanel";
+import StatusBar from "./components/StatusBar";
 import "./App.css";
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabId>("serial");
 
   return (
-    <div className="flex h-screen flex-row bg-editor">
-      <ActivityBar activeTab={activeTab} onTabChange={setActiveTab} />
-      <Sidebar activeTab={activeTab} />
-      <MainPanel />
+    <div className="flex h-screen flex-col bg-editor">
+      <div className="flex flex-1 flex-row overflow-hidden">
+        <ActivityBar activeTab={activeTab} onTabChange={setActiveTab} />
+        <Sidebar activeTab={activeTab} />
+        <MainPanel />
+      </div>
+      <StatusBar />
     </div>
   );
 }
