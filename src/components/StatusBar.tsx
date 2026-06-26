@@ -17,7 +17,7 @@ export default function StatusBar() {
 
   return (
     <div
-      className="flex h-7 items-center gap-3 border-t border-border bg-panel text-sm text-text-secondary"
+      className="flex h-7 items-center gap-3 border-t border-border bg-panel text-base text-text-secondary"
       style={{ paddingLeft: 15, paddingRight: 15 }}
     >
       <div className="flex items-center gap-1.5">
