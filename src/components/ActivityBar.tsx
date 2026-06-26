@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { Cable, Terminal, Settings } from "lucide-react";
 
-type TabId = "serial" | "ssh" | "settings";
+export type TabId = "serial" | "ssh" | "settings";
 
 interface Tab {
   id: TabId;
@@ -15,16 +14,19 @@ const tabs: Tab[] = [
   { id: "ssh", icon: Terminal, label: "SSH", disabled: true },
 ];
 
-export default function ActivityBar() {
-  const [activeTab, setActiveTab] = useState<TabId>("serial");
+interface ActivityBarProps {
+  activeTab: TabId;
+  onTabChange: (tab: TabId) => void;
+}
 
+export default function ActivityBar({ activeTab, onTabChange }: ActivityBarProps) {
   return (
     <div className="flex w-12 flex-col items-center bg-panel">
       <div className="flex flex-1 flex-col items-center gap-1 pt-3">
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => !tab.disabled && setActiveTab(tab.id)}
+            onClick={() => !tab.disabled && onTabChange(tab.id)}
             disabled={tab.disabled}
             className={`flex h-12 w-12 items-center justify-center border-l-2 transition-colors ${
               activeTab === tab.id
@@ -40,7 +42,7 @@ export default function ActivityBar() {
 
       <div className="flex flex-col items-center pb-3">
         <button
-          onClick={() => setActiveTab("settings")}
+          onClick={() => onTabChange("settings")}
           className={`flex h-12 w-12 items-center justify-center border-l-2 transition-colors ${
             activeTab === "settings"
               ? "border-accent text-accent"
