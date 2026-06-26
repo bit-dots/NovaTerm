@@ -1,0 +1,54 @@
+{
+  "app": {
+    "title": "NovaTerm"
+  },
+  "serial": {
+    "connect": "连接串口",
+    "disconnect": "断开连接",
+    "baud_rate": "波特率",
+    "data_bits": "数据位",
+    "stop_bits": "停止位",
+    "parity": "校验位",
+    "flow_control": "流控",
+    "dtr": "DTR",
+    "rts": "RTS",
+    "refresh": "刷新",
+    "no_ports": "未检测到串口"
+  },
+  "send": {
+    "title": "发送",
+    "placeholder": "输入要发送的数据...",
+    "send": "发送",
+    "clear": "清空",
+    "hex": "HEX",
+    "newline": "换行符",
+    "history": "历史记录",
+    "loop": "循环发送",
+    "loop_interval": "间隔(ms)"
+  },
+  "receive": {
+    "title": "接收",
+    "clear": "清空",
+    "pause": "暂停",
+    "resume": "继续",
+    "export": "导出",
+    "timestamp": "时间戳",
+    "hex": "HEX"
+  },
+  "macro": {
+    "title": "快捷命令",
+    "add": "添加",
+    "edit": "编辑",
+    "delete": "删除",
+    "name": "名称",
+    "command": "命令",
+    "empty": "暂无快捷命令"
+  },
+  "settings": {
+    "title": "设置",
+    "language": "语言",
+    "theme": "主题",
+    "light": "亮色",
+    "dark": "暗色"
+  }
+}

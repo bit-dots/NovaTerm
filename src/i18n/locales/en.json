@@ -1,0 +1,54 @@
+{
+  "app": {
+    "title": "NovaTerm"
+  },
+  "serial": {
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "baud_rate": "Baud Rate",
+    "data_bits": "Data Bits",
+    "stop_bits": "Stop Bits",
+    "parity": "Parity",
+    "flow_control": "Flow Control",
+    "dtr": "DTR",
+    "rts": "RTS",
+    "refresh": "Refresh",
+    "no_ports": "No serial ports detected"
+  },
+  "send": {
+    "title": "Send",
+    "placeholder": "Enter data to send...",
+    "send": "Send",
+    "clear": "Clear",
+    "hex": "HEX",
+    "newline": "Newline",
+    "history": "History",
+    "loop": "Loop",
+    "loop_interval": "Interval (ms)"
+  },
+  "receive": {
+    "title": "Receive",
+    "clear": "Clear",
+    "pause": "Pause",
+    "resume": "Resume",
+    "export": "Export",
+    "timestamp": "Timestamp",
+    "hex": "HEX"
+  },
+  "macro": {
+    "title": "Macros",
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "name": "Name",
+    "command": "Command",
+    "empty": "No macros"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark"
+  }
+}
