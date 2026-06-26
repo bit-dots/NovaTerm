@@ -1,8 +1,13 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Circle, Unplug, Sun, Moon } from "lucide-react";
+import { Circle, Unplug, Sun, Moon, ChevronUp, Send } from "lucide-react";
 
-export default function StatusBar() {
+interface StatusBarProps {
+  showSend: boolean;
+  onToggleSend: () => void;
+}
+
+export default function StatusBar({ showSend, onToggleSend }: StatusBarProps) {
   const { t } = useTranslation();
   const [dark, setDark] = useState(true);
 
@@ -24,6 +29,16 @@ export default function StatusBar() {
         <Unplug size={15} />
         <span>{t("status.disconnected")}</span>
       </div>
+
+      <button
+        className="flex items-center gap-1 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
+        onClick={onToggleSend}
+        title={showSend ? t("send.collapse") : t("send.title")}
+      >
+        <Send size={15} />
+        <span>{t("send.title")}</span>
+        <ChevronUp size={12} className={`transition-transform ${showSend ? "" : "rotate-180"}`} />
+      </button>
 
       <div className="flex-1" />
 

@@ -2,7 +2,11 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import LogMonitor from "./LogMonitor";
 import SendController from "./SendController";
 
-export default function MainPanel() {
+interface MainPanelProps {
+  showSend: boolean;
+}
+
+export default function MainPanel({ showSend }: MainPanelProps) {
   const [splitRatio, setSplitRatio] = useState(65);
   const containerRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
@@ -37,20 +41,24 @@ export default function MainPanel() {
 
   return (
     <div ref={containerRef} className="flex flex-1 flex-col">
-      <div style={{ height: `${splitRatio}%` }}>
+      <div style={{ height: showSend ? `${splitRatio}%` : "100%" }}>
         <LogMonitor />
       </div>
 
-      <div
-        className="flex h-1 cursor-row-resize items-center justify-center border-y border-border bg-panel hover:bg-accent transition-colors"
-        onMouseDown={onMouseDown}
-      >
-        <div className="h-0.5 w-6 rounded bg-text-muted" />
-      </div>
+      {showSend && (
+        <>
+          <div
+            className="flex h-1 cursor-row-resize items-center justify-center border-y border-border bg-panel hover:bg-accent transition-colors"
+            onMouseDown={onMouseDown}
+          >
+            <div className="h-0.5 w-6 rounded bg-text-muted" />
+          </div>
 
-      <div className="flex flex-1">
-        <SendController />
-      </div>
+          <div className="flex flex-1">
+            <SendController />
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -7,15 +7,16 @@ import "./App.css";
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabId>("serial");
+  const [showSend, setShowSend] = useState(false);
 
   return (
     <div className="flex h-screen flex-col bg-editor">
       <div className="flex flex-1 flex-row overflow-hidden">
         <ActivityBar activeTab={activeTab} onTabChange={setActiveTab} />
         <Sidebar activeTab={activeTab} />
-        <MainPanel />
+        <MainPanel showSend={showSend} />
       </div>
-      <StatusBar />
+      <StatusBar showSend={showSend} onToggleSend={() => setShowSend(!showSend)} />
     </div>
   );
 }
