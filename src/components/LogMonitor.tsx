@@ -10,7 +10,7 @@ export default function LogMonitor() {
         className="flex items-center gap-2.5 border-b border-border pl-2 py-1"
         style={{ paddingRight: 10 }}
       >
-        <span className="flex-shrink-0 text-xs font-semibold uppercase tracking-wider text-text-secondary">
+        <span className="flex-shrink-0 text-sm font-semibold uppercase tracking-wider text-text-secondary">
           {t("receive.title")}
         </span>
         <div className="min-w-2 flex-1" />
@@ -46,7 +46,7 @@ export default function LogMonitor() {
         </button>
       </div>
 
-      <div className="flex-1 overflow-auto p-3 font-mono text-xs leading-relaxed text-text-primary">
+      <div className="flex-1 overflow-auto p-3 font-mono text-sm leading-relaxed text-text-primary">
         <span className="text-text-muted">等待接收数据...</span>
       </div>
     </div>
