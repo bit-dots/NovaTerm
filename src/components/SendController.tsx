@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Send, ChevronDown, History, RotateCw, CornerDownLeft } from "lucide-react";
+import { Send, History, RotateCw, CornerDownLeft } from "lucide-react";
 
 export default function SendController() {
   const { t } = useTranslation();
@@ -31,12 +31,6 @@ export default function SendController() {
           title={t("send.cyclic")}
         >
           <RotateCw size={15} />
-        </button>
-        <button
-          className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
-          title={t("send.collapse")}
-        >
-          <ChevronDown size={15} />
         </button>
       </div>
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Circle, Unplug, Sun, Moon, ChevronUp, Send } from "lucide-react";
+import { Circle, Unplug, Sun, Moon, Send } from "lucide-react";
 
 interface StatusBarProps {
   showSend: boolean;
@@ -37,7 +37,6 @@ export default function StatusBar({ showSend, onToggleSend }: StatusBarProps) {
       >
         <Send size={15} />
         <span>{t("send.title")}</span>
-        <ChevronUp size={12} className={`transition-transform ${showSend ? "" : "rotate-180"}`} />
       </button>
 
       <div className="flex-1" />
