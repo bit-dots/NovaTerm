@@ -2,6 +2,10 @@
   "app": {
     "title": "NovaTerm"
   },
+  "status": {
+    "disconnected": "未连接",
+    "connected": "已连接"
+  },
   "serial": {
     "connect": "连接串口",
     "disconnect": "断开连接",
@@ -24,7 +28,9 @@
     "newline": "换行符",
     "history": "历史记录",
     "loop": "循环发送",
-    "loop_interval": "间隔(ms)"
+    "loop_interval": "间隔(ms)",
+    "cyclic": "循环发送",
+    "collapse": "折叠"
   },
   "receive": {
     "title": "接收",

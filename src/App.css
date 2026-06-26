@@ -15,6 +15,21 @@
   --color-warning: #cca700;
 }
 
+.light {
+  --color-panel: #f3f3f3;
+  --color-panel-alt: #ffffff;
+  --color-editor: #ffffff;
+  --color-border: #e5e5e5;
+  --color-accent: #267f7f;
+  --color-text-primary: #333333;
+  --color-text-secondary: #616161;
+  --color-text-muted: #999999;
+  --color-selection: #add6ff;
+  --color-danger: #e53935;
+  --color-success: #2d7d6f;
+  --color-warning: #bf8803;
+}
+
 :root {
   font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
   font-size: 14px;

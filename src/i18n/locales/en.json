@@ -2,6 +2,10 @@
   "app": {
     "title": "NovaTerm"
   },
+  "status": {
+    "disconnected": "Disconnected",
+    "connected": "Connected"
+  },
   "serial": {
     "connect": "Connect",
     "disconnect": "Disconnect",
@@ -24,7 +28,9 @@
     "newline": "Newline",
     "history": "History",
     "loop": "Loop",
-    "loop_interval": "Interval (ms)"
+    "loop_interval": "Interval (ms)",
+    "cyclic": "Cyclic",
+    "collapse": "Collapse"
   },
   "receive": {
     "title": "Receive",

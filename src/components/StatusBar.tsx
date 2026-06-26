@@ -1,11 +1,25 @@
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Circle, Unplug } from "lucide-react";
+import { Circle, Unplug, Sun, Moon } from "lucide-react";
 
 export default function StatusBar() {
   const { t } = useTranslation();
+  const [dark, setDark] = useState(true);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (dark) {
+      root.classList.remove("light");
+    } else {
+      root.classList.add("light");
+    }
+  }, [dark]);
 
   return (
-    <div className="flex h-6 items-center gap-3 border-t border-border bg-panel px-3 text-xs text-text-secondary">
+    <div
+      className="flex h-6 items-center gap-3 border-t border-border bg-panel text-xs text-text-secondary"
+      style={{ paddingLeft: 15, paddingRight: 15 }}
+    >
       <div className="flex items-center gap-1.5">
         <Unplug size={12} />
         <span>{t("status.disconnected")}</span>
@@ -21,6 +35,14 @@ export default function StatusBar() {
       <div className="flex items-center gap-1.5">
         <span>115200</span>
       </div>
+
+      <button
+        className="rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
+        onClick={() => setDark(!dark)}
+        title={dark ? t("settings.light") : t("settings.dark")}
+      >
+        {dark ? <Sun size={12} /> : <Moon size={12} />}
+      </button>
     </div>
   );
 }
