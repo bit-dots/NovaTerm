@@ -7,7 +7,7 @@ export default function SendController() {
   return (
     <div className="flex flex-1 flex-col">
       <div
-        className="flex items-center gap-2.5 border-b border-border pl-2 py-0.5"
+        className="flex items-center gap-2.5 border-b border-border pl-2 py-1"
         style={{ paddingRight: 10 }}
       >
         <span className="flex-shrink-0 text-xs font-semibold uppercase tracking-wider text-text-secondary">
@@ -18,25 +18,25 @@ export default function SendController() {
           className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
           title={t("send.newline")}
         >
-          <CornerDownLeft size={13} />
+          <CornerDownLeft size={15} />
         </button>
         <button
           className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
           title={t("send.history")}
         >
-          <History size={13} />
+          <History size={15} />
         </button>
         <button
           className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
           title={t("send.cyclic")}
         >
-          <RotateCw size={13} />
+          <RotateCw size={15} />
         </button>
         <button
           className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
           title={t("send.collapse")}
         >
-          <ChevronDown size={13} />
+          <ChevronDown size={15} />
         </button>
       </div>
 
@@ -47,7 +47,7 @@ export default function SendController() {
           placeholder={t("send.placeholder")}
         />
         <button className="flex-shrink-0 self-end rounded bg-accent px-3 py-1 text-xs font-medium text-panel hover:bg-accent/80">
-          <Send size={14} />
+          <Send size={15} />
         </button>
       </div>
     </div>

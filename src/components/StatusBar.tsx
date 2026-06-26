@@ -17,18 +17,18 @@ export default function StatusBar() {
 
   return (
     <div
-      className="flex h-6 items-center gap-3 border-t border-border bg-panel text-xs text-text-secondary"
+      className="flex h-7 items-center gap-3 border-t border-border bg-panel text-xs text-text-secondary"
       style={{ paddingLeft: 15, paddingRight: 15 }}
     >
       <div className="flex items-center gap-1.5">
-        <Unplug size={12} />
+        <Unplug size={15} />
         <span>{t("status.disconnected")}</span>
       </div>
 
       <div className="flex-1" />
 
       <div className="flex items-center gap-1.5">
-        <Circle size={8} className="text-text-muted" />
+        <Circle size={10} className="text-text-muted" />
         <span>COM1</span>
       </div>
 
@@ -41,7 +41,7 @@ export default function StatusBar() {
         onClick={() => setDark(!dark)}
         title={dark ? t("settings.light") : t("settings.dark")}
       >
-        {dark ? <Sun size={12} /> : <Moon size={12} />}
+        {dark ? <Sun size={15} /> : <Moon size={15} />}
       </button>
     </div>
   );

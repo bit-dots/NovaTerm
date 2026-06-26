@@ -7,7 +7,7 @@ export default function LogMonitor() {
   return (
     <div className="flex flex-1 flex-col">
       <div
-        className="flex items-center gap-2.5 border-b border-border pl-2 py-0.5"
+        className="flex items-center gap-2.5 border-b border-border pl-2 py-1"
         style={{ paddingRight: 10 }}
       >
         <span className="flex-shrink-0 text-xs font-semibold uppercase tracking-wider text-text-secondary">
@@ -18,31 +18,31 @@ export default function LogMonitor() {
           className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
           title={t("receive.timestamp")}
         >
-          <Clock size={13} />
+          <Clock size={15} />
         </button>
         <button
           className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
           title={t("receive.hex")}
         >
-          <Binary size={13} />
+          <Binary size={15} />
         </button>
         <button
           className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
           title={t("receive.pause")}
         >
-          <CircleStop size={13} />
+          <CircleStop size={15} />
         </button>
         <button
           className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
           title={t("receive.clear")}
         >
-          <Trash2 size={13} />
+          <Trash2 size={15} />
         </button>
         <button
           className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
           title={t("receive.export")}
         >
-          <Download size={13} />
+          <Download size={15} />
         </button>
       </div>
 
