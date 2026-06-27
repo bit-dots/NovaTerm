@@ -13,21 +13,23 @@
   --color-danger: #f44747;
   --color-success: #4ec9b0;
   --color-warning: #cca700;
+  --color-activity-active: #ffffff;
 }
 
 .light {
-  --color-panel: #f3f3f3;
-  --color-panel-alt: #ffffff;
-  --color-editor: #ffffff;
-  --color-border: #e5e5e5;
-  --color-accent: #267f7f;
+  --color-panel: #f2f2f2;
+  --color-panel-alt: #f3f3f3;
+  --color-editor: #f5f5f5;
+  --color-border: #d4d4d4;
+  --color-accent: #4078f2;
   --color-text-primary: #333333;
-  --color-text-secondary: #616161;
+  --color-text-secondary: #666666;
   --color-text-muted: #999999;
   --color-selection: #add6ff;
   --color-danger: #e53935;
   --color-success: #2d7d6f;
   --color-warning: #bf8803;
+  --color-activity-active: #333333;
 }
 
 :root {

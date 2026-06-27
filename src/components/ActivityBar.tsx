@@ -30,7 +30,7 @@ export default function ActivityBar({ activeTab, onTabChange }: ActivityBarProps
             disabled={tab.disabled}
             className={`flex h-12 w-12 items-center justify-center border-l-2 transition-colors ${
               activeTab === tab.id
-                ? "border-white text-white"
+                ? "border-activity-active text-activity-active"
                 : "border-transparent text-text-secondary hover:text-text-primary"
             } ${tab.disabled ? "cursor-not-allowed opacity-40" : "cursor-pointer"}`}
             title={tab.label}
@@ -45,7 +45,7 @@ export default function ActivityBar({ activeTab, onTabChange }: ActivityBarProps
           onClick={() => onTabChange("settings")}
           className={`flex h-12 w-12 items-center justify-center border-l-2 transition-colors ${
             activeTab === "settings"
-              ? "border-white text-white"
+              ? "border-activity-active text-activity-active"
               : "border-transparent text-text-secondary hover:text-text-primary"
           } cursor-pointer`}
           title="设置"
