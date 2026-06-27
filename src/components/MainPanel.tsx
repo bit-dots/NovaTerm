@@ -73,7 +73,7 @@ export default function MainPanel({ showSend }: MainPanelProps) {
   return (
     <div ref={containerRef} className="flex flex-1 flex-col">
       <div style={{ height: showSend ? `${splitRatio}%` : "100%" }}>
-        <LogMonitor entries={entries} />
+        <LogMonitor entries={entries} onClear={() => setEntries([])} />
       </div>
 
       {showSend && (

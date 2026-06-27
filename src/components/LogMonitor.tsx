@@ -1,18 +1,33 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { CircleStop, Trash2, Download, Clock, Binary } from "lucide-react";
 import type { LogEntry } from "../types";
 
 interface LogMonitorProps {
   entries: LogEntry[];
+  onClear: () => void;
 }
 
-export default function LogMonitor({ entries }: LogMonitorProps) {
+export default function LogMonitor({ entries, onClear }: LogMonitorProps) {
   const { t } = useTranslation();
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [entries]);
+
+  const handleExport = useCallback(() => {
+    const lines = entries.map((e) => `[${e.timestamp}] ${e.text}`);
+    const content = lines.join("\n");
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const now = new Date();
+    const filename = `serial-log-${now.toISOString().slice(0, 10)}.txt`;
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
   }, [entries]);
 
   return (
@@ -46,12 +61,14 @@ export default function LogMonitor({ entries }: LogMonitorProps) {
         <button
           className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
           title={t("receive.clear")}
+          onClick={onClear}
         >
           <Trash2 size={15} />
         </button>
         <button
           className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
           title={t("receive.export")}
+          onClick={handleExport}
         >
           <Download size={15} />
         </button>
