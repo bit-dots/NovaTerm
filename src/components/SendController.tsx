@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
-import { Send, History, RotateCw, CornerDownLeft, X } from "lucide-react";
+import { Send, History, RotateCw, CornerDownLeft, X, ChevronDown } from "lucide-react";
 import type { Macro } from "../types";
 import MacroManager from "./MacroManager";
 
@@ -36,6 +36,8 @@ export default function SendController({
   const [cyclicEnabled, setCyclicEnabled] = useState(false);
   const [cyclicInterval, setCyclicInterval] = useState(1000);
   const cyclicRef = useRef<number | null>(null);
+  const [showMacroDropdown, setShowMacroDropdown] = useState(false);
+  const macroDropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef(inputText);
   const hexRef = useRef(hexMode);
   const newlineRef = useRef(newlineMode);
@@ -49,6 +51,17 @@ export default function SendController({
   useEffect(() => {
     newlineRef.current = newlineMode;
   }, [newlineMode]);
+
+  useEffect(() => {
+    if (!showMacroDropdown) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (macroDropdownRef.current && !macroDropdownRef.current.contains(e.target as Node)) {
+        setShowMacroDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showMacroDropdown]);
 
   const hexToBytes = useCallback((hex: string) => {
     const cleaned = hex.replace(/\s+/g, "");
@@ -117,23 +130,6 @@ export default function SendController({
     if (!text) return;
     await doSend(text, hexMode, newlineMode);
   }, [inputText, hexMode, newlineMode, doSend]);
-
-  const handleMacroSend = useCallback(
-    async (macro: Macro) => {
-      if (!macro.command) return;
-      const bytes = Array.from(new TextEncoder().encode(macro.command));
-      setSending(true);
-      try {
-        await invoke("write_serial_data", { data: bytes });
-        onSend(bytes, macro.command);
-      } catch (e) {
-        console.error("Failed to send macro:", e);
-      } finally {
-        setSending(false);
-      }
-    },
-    [onSend],
-  );
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -274,27 +270,48 @@ export default function SendController({
         />
 
         <div className="flex items-center gap-2 border-t border-border px-2 py-1.5">
-          {macros.length > 0 ? (
-            <div className="flex items-center gap-1.5 overflow-x-auto flex-1 min-w-0">
-              {macros.map((macro) => (
-                <button
-                  key={macro.id}
-                  onClick={() => handleMacroSend(macro)}
-                  disabled={sending}
-                  className="flex-shrink-0 rounded-full border border-border bg-panel-alt px-2.5 py-0.5 text-xs text-text-primary transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
-                  title={macro.command}
-                >
-                  {macro.name}
-                </button>
-              ))}
-              <MacroManager macros={macros} onMacrosChange={onMacrosChange} />
-            </div>
-          ) : (
-            <div className="flex items-center gap-1.5 flex-1 min-w-0">
-              <span className="text-xs text-text-muted">{t("macro.empty")}</span>
-              <MacroManager macros={macros} onMacrosChange={onMacrosChange} />
-            </div>
-          )}
+          <div className="relative flex-1 min-w-0" ref={macroDropdownRef}>
+            <button
+              className="flex w-full items-center gap-1.5 rounded border border-border bg-panel px-2 py-0.5 text-xs text-text-secondary hover:border-text-muted"
+              onClick={() => setShowMacroDropdown(!showMacroDropdown)}
+              title={t("macro.title")}
+            >
+              <span className="flex-1 truncate text-left text-text-muted">{t("macro.select")}</span>
+              <ChevronDown
+                size={12}
+                className={`flex-shrink-0 transition-transform ${showMacroDropdown ? "rotate-180" : ""}`}
+              />
+            </button>
+            {showMacroDropdown && (
+              <div className="absolute bottom-full left-0 mb-1 w-full rounded border border-border bg-panel shadow-lg z-50">
+                <div className="max-h-40 overflow-auto">
+                  {macros.length === 0 ? (
+                    <div className="px-2 py-3 text-center text-xs text-text-muted">
+                      {t("macro.empty")}
+                    </div>
+                  ) : (
+                    macros.map((macro) => (
+                      <button
+                        key={macro.id}
+                        className="flex w-full flex-col px-2 py-1.5 text-left hover:bg-panel-alt"
+                        onClick={() => {
+                          setInputText(macro.command);
+                          setShowMacroDropdown(false);
+                        }}
+                      >
+                        <span className="text-xs text-text-primary">{macro.name}</span>
+                        <span className="truncate font-mono text-[10px] text-text-muted">
+                          {macro.command}
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <MacroManager macros={macros} onMacrosChange={onMacrosChange} />
 
           {cyclicEnabled && (
             <>
