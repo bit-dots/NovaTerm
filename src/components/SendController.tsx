@@ -194,12 +194,12 @@ export default function SendController({
         className="flex items-center gap-2.5 border-b border-border pl-2 py-1"
         style={{ paddingRight: 10 }}
       >
-        <span className="flex-shrink-0 text-base font-semibold uppercase tracking-wider text-text-secondary">
+        <span className="flex-shrink-0 text-base font-semibold uppercase tracking-wider text-text-secondary leading-none">
           {t("send.title")}
         </span>
         <div className="flex-1" />
         <button
-          className={`flex-shrink-0 rounded px-1.5 py-0.5 text-xs font-medium transition-colors ${
+          className={`flex-shrink-0 inline-flex items-center justify-center h-6 rounded px-1.5 text-xs font-medium leading-none transition-colors ${
             hexMode
               ? "bg-accent/20 text-accent"
               : "text-text-secondary hover:bg-panel-alt hover:text-text-primary"
@@ -210,7 +210,7 @@ export default function SendController({
           HEX
         </button>
         <button
-          className={`flex-shrink-0 rounded px-1.5 py-0.5 text-xs font-medium transition-colors ${
+          className={`flex-shrink-0 inline-flex items-center justify-center h-6 rounded px-1.5 text-xs font-medium leading-none transition-colors ${
             newlineMode !== "none"
               ? "bg-accent/20 text-accent"
               : "text-text-secondary hover:bg-panel-alt hover:text-text-primary"
@@ -222,7 +222,7 @@ export default function SendController({
         </button>
         <div className="relative">
           <button
-            className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
+            className="flex-shrink-0 inline-flex items-center justify-center h-6 w-6 rounded text-text-secondary hover:bg-panel-alt hover:text-text-primary"
             title={t("send.history")}
             onClick={() => setShowHistory((prev) => !prev)}
           >
@@ -244,7 +244,7 @@ export default function SendController({
           )}
         </div>
         <button
-          className={`flex-shrink-0 rounded p-0.5 transition-colors ${
+          className={`flex-shrink-0 inline-flex items-center justify-center h-6 w-6 rounded transition-colors ${
             cyclicEnabled
               ? "text-accent"
               : "text-text-secondary hover:bg-panel-alt hover:text-text-primary"
@@ -254,12 +254,9 @@ export default function SendController({
         >
           <RotateCw size={15} />
         </button>
-        <div
-          className="h-4 w-px bg-text-secondary/50"
-          style={{ marginLeft: 3, marginRight: 0.5 }}
-        />
+        <div className="h-4 w-px bg-text-secondary/50" style={{ marginLeft: 12, marginRight: 2 }} />
         <button
-          className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
+          className="flex-shrink-0 inline-flex items-center justify-center h-6 w-6 rounded text-text-secondary hover:bg-panel-alt hover:text-text-primary"
           onClick={onClose}
           title={t("send.collapse")}
         >
