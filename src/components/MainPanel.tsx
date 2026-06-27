@@ -30,6 +30,8 @@ export default function MainPanel({ showSend, onTxBytes, onRxBytes }: MainPanelP
   const addEntry = useCallback((type: "rx" | "tx", data: number[], text: string) => {
     const now = new Date();
     const timestamp =
+      now.toLocaleDateString("en-CA") +
+      " " +
       now.toLocaleTimeString("en-US", { hour12: false }) +
       "." +
       String(now.getMilliseconds()).padStart(3, "0");
