@@ -18,7 +18,7 @@ export default function CollapsibleSection({
     <div className="border-b border-border">
       <button
         onClick={() => setOpen(!open)}
-        className="flex w-full items-center gap-1 px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-text-secondary hover:text-text-primary"
+        className="flex w-full items-center gap-1 px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary hover:text-text-primary"
       >
         <ChevronDown
           size={12}

@@ -92,7 +92,7 @@ export default function LogMonitor({
         className="flex items-center gap-2.5 border-b border-border pl-2 py-1"
         style={{ paddingRight: 10 }}
       >
-        <span className="flex-shrink-0 text-base font-semibold uppercase tracking-wider text-text-secondary">
+        <span className="flex-shrink-0 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
           {t("receive.title")}
         </span>
         <div className="min-w-2 flex-1" />
