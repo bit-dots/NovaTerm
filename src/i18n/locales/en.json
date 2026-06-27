@@ -60,7 +60,8 @@
     "name": "Name",
     "command": "Command",
     "empty": "No macros",
-    "save": "Save"
+    "save": "Save",
+    "select": "Select macro..."
   },
   "settings": {
     "title": "Settings",

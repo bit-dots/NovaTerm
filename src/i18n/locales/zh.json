@@ -60,7 +60,8 @@
     "name": "名称",
     "command": "命令",
     "empty": "暂无快捷命令",
-    "save": "保存"
+    "save": "保存",
+    "select": "选择快捷指令..."
   },
   "settings": {
     "title": "设置",
