@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -88,6 +88,29 @@ export default function Sidebar({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    if (!connected) return;
+
+    const doReconnect = async () => {
+      try {
+        await invoke("close_serial_port");
+        onDtrChange(false);
+        onRtsChange(false);
+        await invoke("open_serial_port", { config });
+      } catch (e) {
+        console.error("Reconnect failed:", e);
+      }
+    };
+    doReconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config]);
 
   const updateConfig = (partial: Partial<SerialConfig>) => {
     onConfigChange({ ...config, ...partial });
