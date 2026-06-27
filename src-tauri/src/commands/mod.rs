@@ -24,6 +24,14 @@ pub fn read_serial_data(state: tauri::State<'_, SerialState>) -> Result<Vec<u8>,
 }
 
 #[tauri::command]
+pub fn write_serial_data(
+    data: Vec<u8>,
+    state: tauri::State<'_, SerialState>,
+) -> Result<(), String> {
+    serial::write_data(&state, &data)
+}
+
+#[tauri::command]
 pub fn set_dtr(enabled: bool, state: tauri::State<'_, SerialState>) -> Result<(), String> {
     serial::set_dtr(&state, enabled)
 }

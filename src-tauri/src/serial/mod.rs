@@ -160,6 +160,12 @@ pub fn read_data(state: &SerialState) -> Result<Vec<u8>, String> {
     Ok(result)
 }
 
+pub fn write_data(state: &SerialState, data: &[u8]) -> Result<(), String> {
+    let mut port = state.port.lock().map_err(|e| e.to_string())?;
+    let port = port.as_mut().ok_or("串口未打开")?;
+    port.write_all(data).map_err(|e| e.to_string())
+}
+
 pub fn close(state: &SerialState) -> Result<(), String> {
     // 将 port 置为 None，后台读取线程会检测到并退出
     {
