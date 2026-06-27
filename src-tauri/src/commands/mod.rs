@@ -9,8 +9,9 @@ pub fn list_serial_ports() -> Result<Vec<PortInfo>, String> {
 pub fn open_serial_port(
     config: SerialConfig,
     state: tauri::State<'_, SerialState>,
+    app_handle: tauri::AppHandle,
 ) -> Result<(), String> {
-    serial::open(&config, &state)
+    serial::open(&config, &state, &app_handle)
 }
 
 #[tauri::command]

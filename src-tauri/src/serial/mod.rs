@@ -35,6 +35,18 @@ pub struct SerialStatus {
     pub port_name: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub struct DataReceivedEvent {
+    pub data: Vec<u8>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct StatusChangedEvent {
+    pub connected: bool,
+    pub port_name: String,
+    pub error: Option<String>,
+}
+
 #[allow(dead_code)]
 #[derive(Debug, Clone, Serialize)]
 pub struct SerialError {
@@ -112,7 +124,11 @@ pub fn list_ports() -> Result<Vec<PortInfo>, String> {
     Ok(infos)
 }
 
-pub fn open(config: &SerialConfig, state: &SerialState) -> Result<(), String> {
+pub fn open(
+    config: &SerialConfig,
+    state: &SerialState,
+    app_handle: &tauri::AppHandle,
+) -> Result<(), String> {
     let data_bits = match config.data_bits {
         5 => serialport::DataBits::Five,
         6 => serialport::DataBits::Six,
@@ -153,6 +169,8 @@ pub fn open(config: &SerialConfig, state: &SerialState) -> Result<(), String> {
     let (tx, rx) = crossbeam_channel::bounded::<Vec<u8>>(256);
     let port_arc = Arc::clone(&state.port);
     let port_name = config.port_name.clone();
+    let port_name_for_thread = port_name.clone();
+    let app_handle_clone = app_handle.clone();
 
     // 存入串口对象
     {
@@ -160,31 +178,73 @@ pub fn open(config: &SerialConfig, state: &SerialState) -> Result<(), String> {
         *locked = Some(port);
     }
 
+    // 发射连接成功事件
+    let _ = app_handle.emit(
+        "serial:status-changed",
+        StatusChangedEvent {
+            connected: true,
+            port_name: port_name.clone(),
+            error: None,
+        },
+    );
+
     let handle = std::thread::spawn(move || {
         let mut buf = vec![0u8; 4096];
         loop {
             let mut port_guard = match port_arc.lock() {
                 Ok(g) => g,
-                Err(_) => break,
+                Err(_) => {
+                    let _ = app_handle_clone.emit(
+                        "serial:status-changed",
+                        StatusChangedEvent {
+                            connected: false,
+                            port_name: port_name_for_thread.clone(),
+                            error: Some("内部错误: 锁获取失败".into()),
+                        },
+                    );
+                    break;
+                }
             };
             let port = match port_guard.as_mut() {
                 Some(p) => p,
-                None => break,
+                None => {
+                    let _ = app_handle_clone.emit(
+                        "serial:status-changed",
+                        StatusChangedEvent {
+                            connected: false,
+                            port_name: port_name_for_thread.clone(),
+                            error: None,
+                        },
+                    );
+                    break;
+                }
             };
             match port.read(&mut buf) {
                 Ok(n) if n > 0 => {
+                    let data = buf[..n].to_vec();
                     drop(port_guard);
-                    if tx.send(buf[..n].to_vec()).is_err() {
+                    let _ = app_handle_clone.emit(
+                        "serial:data-received",
+                        DataReceivedEvent { data: data.clone() },
+                    );
+                    if tx.send(data).is_err() {
                         break;
                     }
                 }
                 Ok(_) => {
-                    // 超时无数据，短暂休眠降低 CPU 占用
                     drop(port_guard);
                     std::thread::sleep(Duration::from_millis(1));
                 }
-                Err(_) => {
+                Err(e) => {
                     drop(port_guard);
+                    let _ = app_handle_clone.emit(
+                        "serial:status-changed",
+                        StatusChangedEvent {
+                            connected: false,
+                            port_name: port_name_for_thread.clone(),
+                            error: Some(format!("读取错误: {}", e)),
+                        },
+                    );
                     break;
                 }
             }
