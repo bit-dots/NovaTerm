@@ -63,12 +63,16 @@
   },
   "settings": {
     "title": "设置",
+    "appearance": "外观",
+    "log": "日志",
     "language": "语言",
     "theme": "主题",
     "light": "亮色",
     "dark": "暗色",
     "log_settings": "日志设置",
     "max_lines": "最大行数",
-    "font_size": "日志字体大小"
+    "max_lines_desc": "超出上限自动截断旧数据，范围 1,000 ~ 100,000",
+    "font_size": "日志字体大小",
+    "font_size_desc": "调节日志区域的字体大小，快捷键 Ctrl+/-"
   }
 }

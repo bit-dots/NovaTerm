@@ -5,9 +5,7 @@ import { useTranslation } from "react-i18next";
 import type { TabId } from "./ActivityBar";
 import type { PortInfo, SerialConfig } from "../types";
 import { BAUD_RATES, DATA_BITS_OPTIONS, STOP_BITS_OPTIONS, PARITY_OPTIONS } from "../types";
-import type { AppSettings } from "../types";
 import CollapsibleSection from "./common/CollapsibleSection";
-import SettingsPanel from "./SettingsPanel";
 
 interface SidebarProps {
   activeTab: TabId;
@@ -19,8 +17,6 @@ interface SidebarProps {
   onDtrChange: (enabled: boolean) => void;
   rtsEnabled: boolean;
   onRtsChange: (enabled: boolean) => void;
-  settings: AppSettings;
-  onSettingsChange: (settings: AppSettings) => void;
 }
 
 export default function Sidebar({
@@ -33,8 +29,6 @@ export default function Sidebar({
   onDtrChange,
   rtsEnabled,
   onRtsChange,
-  settings,
-  onSettingsChange,
 }: SidebarProps) {
   const { t } = useTranslation();
   const [ports, setPorts] = useState<PortInfo[]>([]);
@@ -125,14 +119,6 @@ export default function Sidebar({
   if (activeTab !== "serial") {
     return (
       <div className="flex w-60 flex-col border-r border-border bg-panel-alt">
-        {activeTab === "settings" && (
-          <>
-            <div className="px-4 pt-3 text-base font-semibold uppercase tracking-wider text-text-secondary">
-              {t("settings.title")}
-            </div>
-            <SettingsPanel settings={settings} onChange={onSettingsChange} />
-          </>
-        )}
         {activeTab === "ssh" && null}
       </div>
     );

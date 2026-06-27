@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import ActivityBar, { type TabId } from "./components/ActivityBar";
 import Sidebar from "./components/Sidebar";
 import MainPanel from "./components/MainPanel";
+import SettingsPage from "./components/SettingsPage";
 import StatusBar from "./components/StatusBar";
 import type { SerialConfig, AppSettings } from "./types";
 import { DEFAULT_CONFIG, DEFAULT_SETTINGS } from "./types";
@@ -22,6 +23,7 @@ function loadSettings(): AppSettings {
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabId>("serial");
+  const [showSettings, setShowSettings] = useState(false);
   const [showSend, setShowSend] = useState(false);
   const [config, setConfig] = useState<SerialConfig>(DEFAULT_CONFIG);
   const [connected, setConnected] = useState(false);
@@ -42,7 +44,12 @@ function App() {
   return (
     <div className="flex h-screen flex-col bg-editor">
       <div className="flex flex-1 flex-row overflow-hidden">
-        <ActivityBar activeTab={activeTab} onTabChange={setActiveTab} />
+        <ActivityBar
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onOpenSettings={() => setShowSettings(true)}
+          onOpenCommandPalette={() => {}}
+        />
         <Sidebar
           key={activeTab}
           activeTab={activeTab}
@@ -54,8 +61,6 @@ function App() {
           onDtrChange={setDtrEnabled}
           rtsEnabled={rtsEnabled}
           onRtsChange={setRtsEnabled}
-          settings={settings}
-          onSettingsChange={setSettings}
         />
         <MainPanel
           showSend={showSend}
@@ -78,6 +83,14 @@ function App() {
         dtrEnabled={dtrEnabled}
         rtsEnabled={rtsEnabled}
       />
+
+      {showSettings && (
+        <SettingsPage
+          settings={settings}
+          onChange={setSettings}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
     </div>
   );
 }

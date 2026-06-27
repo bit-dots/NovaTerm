@@ -63,12 +63,16 @@
   },
   "settings": {
     "title": "Settings",
+    "appearance": "Appearance",
+    "log": "Log",
     "language": "Language",
     "theme": "Theme",
     "light": "Light",
     "dark": "Dark",
     "log_settings": "Log Settings",
     "max_lines": "Max Lines",
-    "font_size": "Log Font Size"
+    "max_lines_desc": "Automatically truncate old data when exceeded. Range: 1,000 ~ 100,000",
+    "font_size": "Log Font Size",
+    "font_size_desc": "Adjust the font size of the log area. Shortcut: Ctrl+/-"
   }
 }
