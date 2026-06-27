@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import type { TabId } from "./ActivityBar";
 import type { PortInfo, SerialConfig } from "../types";
 import { BAUD_RATES, DATA_BITS_OPTIONS, STOP_BITS_OPTIONS, PARITY_OPTIONS } from "../types";
+import CollapsibleSection from "./common/CollapsibleSection";
 
 interface SidebarProps {
   activeTab: TabId;
@@ -67,26 +68,22 @@ export default function Sidebar({ activeTab, config, onConfigChange }: SidebarPr
 
   return (
     <div className="flex w-60 flex-col border-r border-border bg-panel-alt">
-      <div className="flex items-center justify-between px-4 py-2">
-        <span className="text-base font-semibold uppercase tracking-wider text-text-secondary">
-          {t("serial.refresh")}
-        </span>
-        <button
-          onClick={loadPorts}
-          disabled={loading}
-          className="rounded p-1 text-text-secondary hover:bg-border hover:text-text-primary disabled:opacity-50"
-          title={t("serial.refresh")}
-        >
-          <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-        </button>
-      </div>
-
-      <div className="px-4 py-2">
-        <label className="mb-1 block text-base font-medium text-text-secondary">
-          {t("serial.port")}
-        </label>
+      <CollapsibleSection title={t("sidebar.connection")}>
+        <div className="flex items-center gap-2 px-2 py-1">
+          <span className="text-xs uppercase tracking-wide text-text-muted">
+            {t("serial.port")}
+          </span>
+          <button
+            onClick={loadPorts}
+            disabled={loading}
+            className="ml-auto rounded p-0.5 text-text-secondary hover:bg-border hover:text-text-primary disabled:opacity-50"
+            title={t("serial.refresh")}
+          >
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+          </button>
+        </div>
         <select
-          className="w-full rounded border border-border bg-panel px-2 py-1.5 text-base text-text-primary focus:border-accent focus:outline-none"
+          className="mx-2 mb-2 w-[calc(100%-16px)] rounded border border-border bg-panel px-2 py-1.5 text-sm text-text-primary focus:border-accent focus:outline-none"
           value={config.port_name}
           onChange={(e) => updateConfig({ port_name: e.target.value })}
         >
@@ -101,85 +98,102 @@ export default function Sidebar({ activeTab, config, onConfigChange }: SidebarPr
             ))
           )}
         </select>
-      </div>
 
-      <div className="px-4 py-2">
-        <label className="mb-1 block text-base font-medium text-text-secondary">
-          {t("serial.baud_rate")}
-        </label>
-        <select
-          className="w-full rounded border border-border bg-panel px-2 py-1.5 text-base text-text-primary focus:border-accent focus:outline-none"
-          value={config.baud_rate}
-          onChange={(e) => updateConfig({ baud_rate: Number(e.target.value) })}
-        >
-          {BAUD_RATES.map((rate) => (
-            <option key={rate} value={rate}>
-              {rate.toLocaleString()}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 px-4 py-2">
-        <div>
-          <label className="mb-1 block text-base font-medium text-text-secondary">
-            {t("serial.data_bits")}
-          </label>
+        <div className="px-2 pb-2">
+          <label className="mb-1 block text-xs text-text-muted">{t("serial.baud_rate")}</label>
           <select
-            className="w-full rounded border border-border bg-panel px-2 py-1.5 text-base text-text-primary focus:border-accent focus:outline-none"
-            value={config.data_bits}
-            onChange={(e) =>
-              updateConfig({
-                data_bits: Number(e.target.value) as SerialConfig["data_bits"],
-              })
-            }
+            className="w-full rounded border border-border bg-panel px-2 py-1.5 text-sm text-text-primary focus:border-accent focus:outline-none"
+            value={config.baud_rate}
+            onChange={(e) => updateConfig({ baud_rate: Number(e.target.value) })}
           >
-            {DATA_BITS_OPTIONS.map((bits) => (
-              <option key={bits} value={bits}>
-                {bits}
+            {BAUD_RATES.map((rate) => (
+              <option key={rate} value={rate}>
+                {rate.toLocaleString()}
               </option>
             ))}
           </select>
         </div>
 
-        <div>
-          <label className="mb-1 block text-base font-medium text-text-secondary">
-            {t("serial.stop_bits")}
-          </label>
+        <div className="grid grid-cols-2 gap-2 px-2 pb-2">
+          <div>
+            <label className="mb-1 block text-xs text-text-muted">{t("serial.data_bits")}</label>
+            <select
+              className="w-full rounded border border-border bg-panel px-2 py-1.5 text-sm text-text-primary focus:border-accent focus:outline-none"
+              value={config.data_bits}
+              onChange={(e) =>
+                updateConfig({
+                  data_bits: Number(e.target.value) as SerialConfig["data_bits"],
+                })
+              }
+            >
+              {DATA_BITS_OPTIONS.map((bits) => (
+                <option key={bits} value={bits}>
+                  {bits}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs text-text-muted">{t("serial.stop_bits")}</label>
+            <select
+              className="w-full rounded border border-border bg-panel px-2 py-1.5 text-sm text-text-primary focus:border-accent focus:outline-none"
+              value={config.stop_bits}
+              onChange={(e) =>
+                updateConfig({
+                  stop_bits: Number(e.target.value) as SerialConfig["stop_bits"],
+                })
+              }
+            >
+              {STOP_BITS_OPTIONS.map((bits) => (
+                <option key={bits} value={bits}>
+                  {bits}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="px-2 pb-2">
+          <label className="mb-1 block text-xs text-text-muted">{t("serial.parity")}</label>
           <select
-            className="w-full rounded border border-border bg-panel px-2 py-1.5 text-base text-text-primary focus:border-accent focus:outline-none"
-            value={config.stop_bits}
-            onChange={(e) =>
-              updateConfig({
-                stop_bits: Number(e.target.value) as SerialConfig["stop_bits"],
-              })
-            }
+            className="w-full rounded border border-border bg-panel px-2 py-1.5 text-sm text-text-primary focus:border-accent focus:outline-none"
+            value={config.parity}
+            onChange={(e) => updateConfig({ parity: e.target.value as SerialConfig["parity"] })}
           >
-            {STOP_BITS_OPTIONS.map((bits) => (
-              <option key={bits} value={bits}>
-                {bits}
+            {PARITY_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
               </option>
             ))}
           </select>
         </div>
-      </div>
+      </CollapsibleSection>
 
-      <div className="px-4 py-2">
-        <label className="mb-1 block text-base font-medium text-text-secondary">
-          {t("serial.parity")}
-        </label>
-        <select
-          className="w-full rounded border border-border bg-panel px-2 py-1.5 text-base text-text-primary focus:border-accent focus:outline-none"
-          value={config.parity}
-          onChange={(e) => updateConfig({ parity: e.target.value as SerialConfig["parity"] })}
-        >
-          {PARITY_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      <CollapsibleSection title={t("sidebar.macros")} defaultOpen={false}>
+        <div className="px-2 py-3 text-sm text-text-muted">{t("macro.empty")}</div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title={t("sidebar.history")} defaultOpen={false}>
+        <div className="px-2 py-3 text-sm text-text-muted">{t("send.history")}</div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title={t("sidebar.advanced")} defaultOpen={false}>
+        <div className="space-y-2 px-2 py-1">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-text-secondary">{t("serial.flow_control")}</span>
+            <span className="text-sm text-text-muted">None</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-text-secondary">{t("serial.dtr")}</span>
+            <span className="text-sm text-text-muted">—</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-text-secondary">{t("serial.rts")}</span>
+            <span className="text-sm text-text-muted">—</span>
+          </div>
+        </div>
+      </CollapsibleSection>
     </div>
   );
 }

@@ -6,6 +6,12 @@
     "disconnected": "Disconnected",
     "connected": "Connected"
   },
+  "sidebar": {
+    "connection": "Connection",
+    "macros": "Macros",
+    "history": "Send History",
+    "advanced": "Advanced"
+  },
   "serial": {
     "port": "Port",
     "connect": "Connect",
