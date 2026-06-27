@@ -78,7 +78,7 @@ export default function SendController({ onSend }: SendControllerProps) {
   );
 
   const doSend = useCallback(
-    async (text: string, hex: boolean, nl: NewlineMode) => {
+    async (text: string, hex: boolean, nl: NewlineMode, clearInput = true) => {
       const result = buildBytes(text, hex, nl);
       if (!result) return;
 
@@ -86,7 +86,9 @@ export default function SendController({ onSend }: SendControllerProps) {
       try {
         await invoke("write_serial_data", { data: result.bytes });
         onSend(result.bytes, result.displayText);
-        setInputText("");
+        if (clearInput) {
+          setInputText("");
+        }
         setHistory((prev) => {
           const next = [{ text, hexMode: hex }, ...prev.filter((h) => h.text !== text)];
           return next.slice(0, MAX_HISTORY);
@@ -143,7 +145,7 @@ export default function SendController({ onSend }: SendControllerProps) {
       cyclicRef.current = window.setInterval(() => {
         const text = inputRef.current.trim();
         if (!text) return;
-        doSend(text, hexRef.current, newlineRef.current);
+        doSend(text, hexRef.current, newlineRef.current, false);
       }, cyclicInterval);
     } else {
       if (cyclicRef.current !== null) {
