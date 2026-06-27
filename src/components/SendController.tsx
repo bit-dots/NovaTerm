@@ -264,61 +264,62 @@ export default function SendController({
         </button>
       </div>
 
-      {cyclicEnabled && (
-        <div className="flex items-center gap-2 border-b border-border px-2 py-1">
-          <span className="text-xs text-text-secondary">{t("send.loop_interval")}</span>
-          <input
-            type="number"
-            className="w-20 rounded border border-border bg-panel px-1.5 py-0.5 text-xs text-text-primary outline-none focus:border-accent"
-            value={cyclicInterval}
-            min={100}
-            step={100}
-            onChange={(e) => setCyclicInterval(Number(e.target.value) || 1000)}
-          />
-          <span className="text-xs text-text-muted">ms</span>
-        </div>
-      )}
-
-      {macros.length > 0 ? (
-        <div className="flex items-center gap-1.5 overflow-x-auto border-b border-border px-2 py-1.5">
-          {macros.map((macro) => (
-            <button
-              key={macro.id}
-              onClick={() => handleMacroSend(macro)}
-              disabled={sending}
-              className="flex-shrink-0 rounded-full border border-border bg-panel-alt px-2.5 py-0.5 text-xs text-text-primary transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
-              title={macro.command}
-            >
-              {macro.name}
-            </button>
-          ))}
-          <div className="flex-shrink-0 ml-0.5">
-            <MacroManager macros={macros} onMacrosChange={onMacrosChange} />
-          </div>
-        </div>
-      ) : (
-        <div className="flex items-center border-b border-border px-2 py-1">
-          <span className="text-xs text-text-muted">{t("macro.empty")}</span>
-          <div className="flex-1" />
-          <MacroManager macros={macros} onMacrosChange={onMacrosChange} />
-        </div>
-      )}
-
-      <div className="flex flex-1 gap-2 p-2">
+      <div className="flex flex-1 flex-col">
         <textarea
-          className="flex-1 resize-none rounded border border-border bg-panel px-2 py-1 font-mono text-base text-text-primary placeholder-text-muted outline-none focus:border-accent"
+          className="flex-1 resize-none border-0 bg-panel px-2 py-2 font-mono text-base text-text-primary placeholder-text-muted outline-none"
           placeholder={hexMode ? "00 01 FF ..." : t("send.placeholder")}
           value={inputText}
           onChange={hexMode ? handleHexInput : (e) => setInputText(e.target.value)}
           onKeyDown={handleKeyDown}
         />
-        <button
-          className="flex-shrink-0 self-end rounded bg-accent px-3 py-1 text-base font-medium text-panel hover:bg-accent/80 disabled:opacity-50"
-          onClick={handleSend}
-          disabled={sending || !inputText.trim()}
-        >
-          <Send size={15} />
-        </button>
+
+        <div className="flex items-center gap-2 border-t border-border px-2 py-1.5">
+          {macros.length > 0 ? (
+            <div className="flex items-center gap-1.5 overflow-x-auto flex-1 min-w-0">
+              {macros.map((macro) => (
+                <button
+                  key={macro.id}
+                  onClick={() => handleMacroSend(macro)}
+                  disabled={sending}
+                  className="flex-shrink-0 rounded-full border border-border bg-panel-alt px-2.5 py-0.5 text-xs text-text-primary transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
+                  title={macro.command}
+                >
+                  {macro.name}
+                </button>
+              ))}
+              <MacroManager macros={macros} onMacrosChange={onMacrosChange} />
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <span className="text-xs text-text-muted">{t("macro.empty")}</span>
+              <MacroManager macros={macros} onMacrosChange={onMacrosChange} />
+            </div>
+          )}
+
+          {cyclicEnabled && (
+            <>
+              <div className="h-4 w-px bg-text-secondary/50" />
+              <RotateCw size={14} className="text-accent flex-shrink-0" />
+              <input
+                type="number"
+                className="w-16 rounded border border-border bg-panel px-1.5 py-0.5 text-xs text-text-primary outline-none focus:border-accent"
+                value={cyclicInterval}
+                min={100}
+                step={100}
+                onChange={(e) => setCyclicInterval(Number(e.target.value) || 1000)}
+              />
+              <span className="text-xs text-text-muted">ms</span>
+            </>
+          )}
+
+          <button
+            className="flex-shrink-0 inline-flex items-center justify-center h-6 w-6 rounded bg-accent text-panel hover:bg-accent/80 disabled:opacity-50"
+            onClick={handleSend}
+            disabled={sending || !inputText.trim()}
+          >
+            <Send size={15} />
+          </button>
+        </div>
       </div>
     </div>
   );
