@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::io::Read;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
+use tauri::Emitter;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct PortInfo {
@@ -20,11 +22,20 @@ pub struct SerialConfig {
     pub flow_control: String,
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub struct PortChangeEvent {
+    pub port_name: String,
+    pub description: String,
+    pub port_type: String,
+}
+
 pub struct SerialState {
     pub port: Arc<Mutex<Option<Box<dyn serialport::SerialPort>>>>,
     pub port_name: Mutex<Option<String>>,
     pub rx: Mutex<Option<crossbeam_channel::Receiver<Vec<u8>>>>,
     pub read_handle: Mutex<Option<std::thread::JoinHandle<()>>>,
+    pub monitor_running: Arc<AtomicBool>,
+    pub monitor_handle: Mutex<Option<std::thread::JoinHandle<()>>>,
 }
 
 impl SerialState {
@@ -34,6 +45,8 @@ impl SerialState {
             port_name: Mutex::new(None),
             rx: Mutex::new(None),
             read_handle: Mutex::new(None),
+            monitor_running: Arc::new(AtomicBool::new(false)),
+            monitor_handle: Mutex::new(None),
         }
     }
 }
@@ -214,4 +227,85 @@ pub fn read_dsr(state: &SerialState) -> Result<bool, String> {
     let mut port = state.port.lock().map_err(|e| e.to_string())?;
     let port = port.as_mut().ok_or("串口未打开")?;
     port.read_data_set_ready().map_err(|e| e.to_string())
+}
+
+pub fn start_port_monitor(state: &SerialState, app_handle: tauri::AppHandle) {
+    state.monitor_running.store(true, Ordering::SeqCst);
+    let running = Arc::clone(&state.monitor_running);
+
+    let handle = std::thread::spawn(move || {
+        let mut prev_names: Vec<String> = Vec::new();
+
+        while running.load(Ordering::SeqCst) {
+            std::thread::sleep(Duration::from_secs(2));
+
+            if let Ok(ports) = serialport::available_ports() {
+                let current: Vec<String> =
+                    ports.iter().map(|p| p.port_name.clone()).collect();
+
+                for name in &current {
+                    if !prev_names.contains(name) {
+                        if let Some(info) = ports.iter().find(|p| p.port_name == *name) {
+                            let (port_type, description) =
+                                match &info.port_type {
+                                    serialport::SerialPortType::UsbPort(u) => {
+                                        let desc = u.product
+                                            .clone()
+                                            .or_else(|| u.manufacturer.clone())
+                                            .unwrap_or_default();
+                                        ("USB".to_string(), desc)
+                                    }
+                                    serialport::SerialPortType::PciPort => {
+                                        ("PCI".to_string(), String::new())
+                                    }
+                                    serialport::SerialPortType::BluetoothPort => {
+                                        ("Bluetooth".to_string(), String::new())
+                                    }
+                                    serialport::SerialPortType::Unknown => {
+                                        ("Unknown".to_string(), String::new())
+                                    }
+                                };
+                            let _ = app_handle.emit(
+                                "serial:port-added",
+                                PortChangeEvent {
+                                    port_name: name.clone(),
+                                    description,
+                                    port_type,
+                                },
+                            );
+                        }
+                    }
+                }
+
+                for name in &prev_names {
+                    if !current.contains(name) {
+                        let _ = app_handle.emit(
+                            "serial:port-removed",
+                            PortChangeEvent {
+                                port_name: name.clone(),
+                                description: String::new(),
+                                port_type: String::new(),
+                            },
+                        );
+                    }
+                }
+
+                prev_names = current;
+            }
+        }
+    });
+
+    if let Ok(mut guard) = state.monitor_handle.lock() {
+        *guard = Some(handle);
+    }
+}
+
+#[allow(dead_code)]
+pub fn stop_port_monitor(state: &SerialState) {
+    state.monitor_running.store(false, Ordering::SeqCst);
+    if let Ok(mut guard) = state.monitor_handle.lock() {
+        if let Some(handle) = guard.take() {
+            let _ = handle.join();
+        }
+    }
 }

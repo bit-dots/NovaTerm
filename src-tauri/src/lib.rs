@@ -2,12 +2,19 @@ mod commands;
 mod serial;
 
 use serial::SerialState;
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .manage(SerialState::new())
+        .setup(|app| {
+            let state = app.state::<SerialState>();
+            let handle = app.handle().clone();
+            serial::start_port_monitor(&state, handle);
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             commands::list_serial_ports,
             commands::open_serial_port,
