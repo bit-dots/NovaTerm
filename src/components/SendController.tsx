@@ -186,11 +186,8 @@ export default function SendController({
 
   return (
     <div className="flex flex-1 flex-col">
-      <div
-        className="flex items-center gap-2.5 border-b border-border pl-2 py-1"
-        style={{ paddingRight: 10 }}
-      >
-        <span className="flex-shrink-0 text-[11px] font-semibold uppercase tracking-wider text-text-secondary leading-none">
+      <div className="flex items-center gap-2.5 pl-2 py-1" style={{ paddingRight: 10 }}>
+        <span className="flex-shrink-0 text-[11px] font-semibold uppercase tracking-wider text-text-primary leading-none">
           {t("send.title")}
         </span>
         <div className="flex-1" />
