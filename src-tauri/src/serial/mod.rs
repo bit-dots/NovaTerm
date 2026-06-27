@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
-use std::sync::Mutex;
+use std::io::Read;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 #[derive(Debug, Clone, Serialize)]
@@ -20,13 +21,20 @@ pub struct SerialConfig {
 }
 
 pub struct SerialState {
-    pub port: Mutex<Option<Box<dyn serialport::SerialPort>>>,
+    pub port: Arc<Mutex<Option<Box<dyn serialport::SerialPort>>>>,
     pub port_name: Mutex<Option<String>>,
+    pub rx: Mutex<Option<crossbeam_channel::Receiver<Vec<u8>>>>,
+    pub read_handle: Mutex<Option<std::thread::JoinHandle<()>>>,
 }
 
 impl SerialState {
     pub fn new() -> Self {
-        Self { port: Mutex::new(None), port_name: Mutex::new(None) }
+        Self {
+            port: Arc::new(Mutex::new(None)),
+            port_name: Mutex::new(None),
+            rx: Mutex::new(None),
+            read_handle: Mutex::new(None),
+        }
     }
 }
 
@@ -56,7 +64,7 @@ pub fn list_ports() -> Result<Vec<PortInfo>, String> {
     Ok(infos)
 }
 
-pub fn open(config: &SerialConfig) -> Result<Box<dyn serialport::SerialPort>, String> {
+pub fn open(config: &SerialConfig, state: &SerialState) -> Result<(), String> {
     let data_bits = match config.data_bits {
         5 => serialport::DataBits::Five,
         6 => serialport::DataBits::Six,
@@ -94,12 +102,83 @@ pub fn open(config: &SerialConfig) -> Result<Box<dyn serialport::SerialPort>, St
         .open()
         .map_err(|e| e.to_string())?;
 
-    Ok(port)
+    let (tx, rx) = crossbeam_channel::bounded::<Vec<u8>>(256);
+    let port_arc = Arc::clone(&state.port);
+    let port_name = config.port_name.clone();
+
+    // 存入串口对象
+    {
+        let mut locked = state.port.lock().map_err(|e| e.to_string())?;
+        *locked = Some(port);
+    }
+
+    let handle = std::thread::spawn(move || {
+        let mut buf = vec![0u8; 4096];
+        loop {
+            let mut port_guard = match port_arc.lock() {
+                Ok(g) => g,
+                Err(_) => break,
+            };
+            let port = match port_guard.as_mut() {
+                Some(p) => p,
+                None => break,
+            };
+            match port.read(&mut buf) {
+                Ok(n) if n > 0 => {
+                    drop(port_guard);
+                    if tx.send(buf[..n].to_vec()).is_err() {
+                        break;
+                    }
+                }
+                Ok(_) => {
+                    // 超时无数据，短暂休眠降低 CPU 占用
+                    drop(port_guard);
+                    std::thread::sleep(Duration::from_millis(1));
+                }
+                Err(_) => {
+                    drop(port_guard);
+                    break;
+                }
+            }
+        }
+    });
+
+    *state.rx.lock().map_err(|e| e.to_string())? = Some(rx);
+    *state.read_handle.lock().map_err(|e| e.to_string())? = Some(handle);
+    *state.port_name.lock().map_err(|e| e.to_string())? = Some(port_name);
+
+    Ok(())
+}
+
+pub fn read_data(state: &SerialState) -> Result<Vec<u8>, String> {
+    let rx = state.rx.lock().map_err(|e| e.to_string())?;
+    let rx = rx.as_ref().ok_or("串口未打开")?;
+    let mut result = Vec::new();
+    while let Ok(chunk) = rx.try_recv() {
+        result.extend_from_slice(&chunk);
+    }
+    Ok(result)
 }
 
 pub fn close(state: &SerialState) -> Result<(), String> {
-    let mut port = state.port.lock().map_err(|e| e.to_string())?;
-    *port = None;
+    // 将 port 置为 None，后台读取线程会检测到并退出
+    {
+        let mut port = state.port.lock().map_err(|e| e.to_string())?;
+        *port = None;
+    }
+
+    // 等待读取线程结束
+    if let Ok(mut handle) = state.read_handle.lock() {
+        if let Some(h) = handle.take() {
+            let _ = h.join();
+        }
+    }
+
+    // 清空接收端
+    if let Ok(mut rx) = state.rx.lock() {
+        *rx = None;
+    }
+
     let mut name = state.port_name.lock().map_err(|e| e.to_string())?;
     *name = None;
     Ok(())

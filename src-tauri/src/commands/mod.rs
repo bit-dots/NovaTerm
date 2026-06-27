@@ -10,17 +10,17 @@ pub fn open_serial_port(
     config: SerialConfig,
     state: tauri::State<'_, SerialState>,
 ) -> Result<(), String> {
-    let port = serial::open(&config)?;
-    let mut locked = state.port.lock().map_err(|e| e.to_string())?;
-    *locked = Some(port);
-    let mut name = state.port_name.lock().map_err(|e| e.to_string())?;
-    *name = Some(config.port_name);
-    Ok(())
+    serial::open(&config, &state)
 }
 
 #[tauri::command]
 pub fn close_serial_port(state: tauri::State<'_, SerialState>) -> Result<(), String> {
     serial::close(&state)
+}
+
+#[tauri::command]
+pub fn read_serial_data(state: tauri::State<'_, SerialState>) -> Result<Vec<u8>, String> {
+    serial::read_data(&state)
 }
 
 #[tauri::command]

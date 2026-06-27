@@ -23,6 +23,7 @@ tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serialport = "4"
+crossbeam-channel = "0.5"
 
 [lints.clippy]
 # 禁止 unwrap，强制使用 ? 或 expect
