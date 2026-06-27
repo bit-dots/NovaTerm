@@ -23,7 +23,8 @@
     "dtr": "DTR",
     "rts": "RTS",
     "refresh": "刷新",
-    "no_ports": "未检测到串口"
+    "no_ports": "未检测到串口",
+    "connect_first": "请先连接串口"
   },
   "send": {
     "title": "发送",

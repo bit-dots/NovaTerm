@@ -11,12 +11,15 @@ interface SidebarProps {
   activeTab: TabId;
   config: SerialConfig;
   onConfigChange: (config: SerialConfig) => void;
+  connected: boolean;
 }
 
-export default function Sidebar({ activeTab, config, onConfigChange }: SidebarProps) {
+export default function Sidebar({ activeTab, config, onConfigChange, connected }: SidebarProps) {
   const { t } = useTranslation();
   const [ports, setPorts] = useState<PortInfo[]>([]);
   const [loading, setLoading] = useState(false);
+  const [dtrEnabled, setDtrEnabled] = useState(false);
+  const [rtsEnabled, setRtsEnabled] = useState(false);
 
   const loadPorts = async () => {
     setLoading(true);
@@ -189,14 +192,70 @@ export default function Sidebar({ activeTab, config, onConfigChange }: SidebarPr
 
       <CollapsibleSection title={t("sidebar.signals")} defaultOpen={false}>
         <div className="space-y-2 px-2 py-1">
-          <div className="flex items-center justify-between">
+          <div
+            className={`flex items-center justify-between ${
+              connected ? "cursor-pointer" : "cursor-not-allowed opacity-50"
+            }`}
+            onClick={
+              connected
+                ? async () => {
+                    const next = !dtrEnabled;
+                    setDtrEnabled(next);
+                    try {
+                      await invoke("set_dtr", { enabled: next });
+                    } catch {
+                      setDtrEnabled(!next);
+                    }
+                  }
+                : undefined
+            }
+          >
             <span className="text-sm text-text-secondary">{t("serial.dtr")}</span>
-            <span className="text-sm text-text-muted">—</span>
+            <div
+              className={`h-5 w-9 rounded-full transition-colors ${
+                dtrEnabled ? "bg-accent" : "bg-border"
+              }`}
+            >
+              <div
+                className={`ml-0.5 mt-0.5 h-4 w-4 rounded-full bg-white transition-transform ${
+                  dtrEnabled ? "translate-x-4" : ""
+                }`}
+              />
+            </div>
           </div>
-          <div className="flex items-center justify-between">
+
+          <div
+            className={`flex items-center justify-between ${
+              connected ? "cursor-pointer" : "cursor-not-allowed opacity-50"
+            }`}
+            onClick={
+              connected
+                ? async () => {
+                    const next = !rtsEnabled;
+                    setRtsEnabled(next);
+                    try {
+                      await invoke("set_rts", { enabled: next });
+                    } catch {
+                      setRtsEnabled(!next);
+                    }
+                  }
+                : undefined
+            }
+          >
             <span className="text-sm text-text-secondary">{t("serial.rts")}</span>
-            <span className="text-sm text-text-muted">—</span>
+            <div
+              className={`h-5 w-9 rounded-full transition-colors ${
+                rtsEnabled ? "bg-accent" : "bg-border"
+              }`}
+            >
+              <div
+                className={`ml-0.5 mt-0.5 h-4 w-4 rounded-full bg-white transition-transform ${
+                  rtsEnabled ? "translate-x-4" : ""
+                }`}
+              />
+            </div>
           </div>
+          {!connected && <p className="text-xs text-text-muted">{t("serial.connect_first")}</p>}
         </div>
       </CollapsibleSection>
     </div>
