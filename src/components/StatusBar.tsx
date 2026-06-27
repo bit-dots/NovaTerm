@@ -1,13 +1,26 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Circle, Unplug, Sun, Moon, Send } from "lucide-react";
+import { Circle, Unplug, Plug, Sun, Moon, Send, ArrowDown, ArrowUp } from "lucide-react";
 
 interface StatusBarProps {
   showSend: boolean;
   onToggleSend: () => void;
+  connected: boolean;
+  portName: string;
+  baudRate: number;
+  txCount: number;
+  rxCount: number;
 }
 
-export default function StatusBar({ showSend, onToggleSend }: StatusBarProps) {
+export default function StatusBar({
+  showSend,
+  onToggleSend,
+  connected,
+  portName,
+  baudRate,
+  txCount,
+  rxCount,
+}: StatusBarProps) {
   const { t } = useTranslation();
   const [dark, setDark] = useState(true);
 
@@ -26,8 +39,29 @@ export default function StatusBar({ showSend, onToggleSend }: StatusBarProps) {
       style={{ paddingLeft: 15, paddingRight: 15 }}
     >
       <div className="flex items-center gap-1.5">
-        <Unplug size={15} />
-        <span>{t("status.disconnected")}</span>
+        {connected ? (
+          <>
+            <Plug size={15} className="text-green-400" />
+            <span className="text-green-400">{t("status.connected")}</span>
+          </>
+        ) : (
+          <>
+            <Unplug size={15} />
+            <span>{t("status.disconnected")}</span>
+          </>
+        )}
+      </div>
+
+      <div className="flex items-center gap-1.5">
+        <span>{t("status.tx")}</span>
+        <ArrowUp size={12} />
+        <span className="text-green-400">{txCount}</span>
+      </div>
+
+      <div className="flex items-center gap-1.5">
+        <span>{t("status.rx")}</span>
+        <ArrowDown size={12} />
+        <span className="text-blue-400">{rxCount}</span>
       </div>
 
       <button
@@ -42,12 +76,12 @@ export default function StatusBar({ showSend, onToggleSend }: StatusBarProps) {
       <div className="flex-1" />
 
       <div className="flex items-center gap-1.5">
-        <Circle size={10} className="text-text-muted" />
-        <span>COM1</span>
+        <Circle size={10} className={connected ? "text-green-400" : "text-text-muted"} />
+        <span>{portName || "—"}</span>
       </div>
 
       <div className="flex items-center gap-1.5">
-        <span>115200</span>
+        <span>{baudRate || "—"}</span>
       </div>
 
       <button

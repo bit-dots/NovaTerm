@@ -4,7 +4,9 @@
   },
   "status": {
     "disconnected": "Disconnected",
-    "connected": "Connected"
+    "connected": "Connected",
+    "tx": "Tx",
+    "rx": "Rx"
   },
   "sidebar": {
     "connection": "Connection",

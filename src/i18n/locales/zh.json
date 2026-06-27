@@ -4,7 +4,9 @@
   },
   "status": {
     "disconnected": "未连接",
-    "connected": "已连接"
+    "connected": "已连接",
+    "tx": "Tx",
+    "rx": "Rx"
   },
   "sidebar": {
     "connection": "串口连接",

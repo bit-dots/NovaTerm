@@ -6,15 +6,26 @@ import type { LogEntry } from "../types";
 
 interface MainPanelProps {
   showSend: boolean;
+  onTxBytes: (n: number) => void;
+  onRxBytes: (n: number) => void;
 }
 
 let nextId = 1;
 
-export default function MainPanel({ showSend }: MainPanelProps) {
+export default function MainPanel({ showSend, onTxBytes, onRxBytes }: MainPanelProps) {
   const [splitRatio, setSplitRatio] = useState(65);
   const [entries, setEntries] = useState<LogEntry[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
+  const onTxBytesRef = useRef(onTxBytes);
+  const onRxBytesRef = useRef(onRxBytes);
+
+  useEffect(() => {
+    onTxBytesRef.current = onTxBytes;
+  }, [onTxBytes]);
+  useEffect(() => {
+    onRxBytesRef.current = onRxBytes;
+  }, [onRxBytes]);
 
   const addEntry = useCallback((type: "rx" | "tx", data: number[], text: string) => {
     const now = new Date();
@@ -33,6 +44,11 @@ export default function MainPanel({ showSend }: MainPanelProps) {
       const next = [...prev, entry];
       return next.length > 10000 ? next.slice(-10000) : next;
     });
+    if (type === "tx") {
+      onTxBytesRef.current(data.length);
+    } else {
+      onRxBytesRef.current(data.length);
+    }
   }, []);
 
   useEffect(() => {

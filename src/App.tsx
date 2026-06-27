@@ -12,6 +12,8 @@ function App() {
   const [showSend, setShowSend] = useState(false);
   const [config, setConfig] = useState<SerialConfig>(DEFAULT_CONFIG);
   const [connected, setConnected] = useState(false);
+  const [txCount, setTxCount] = useState(0);
+  const [rxCount, setRxCount] = useState(0);
 
   return (
     <div className="flex h-screen flex-col bg-editor">
@@ -25,9 +27,21 @@ function App() {
           connected={connected}
           onConnectChange={setConnected}
         />
-        <MainPanel showSend={showSend} />
+        <MainPanel
+          showSend={showSend}
+          onTxBytes={(n) => setTxCount((c) => c + n)}
+          onRxBytes={(n) => setRxCount((c) => c + n)}
+        />
       </div>
-      <StatusBar showSend={showSend} onToggleSend={() => setShowSend(!showSend)} />
+      <StatusBar
+        showSend={showSend}
+        onToggleSend={() => setShowSend(!showSend)}
+        connected={connected}
+        portName={config.port_name}
+        baudRate={config.baud_rate}
+        txCount={txCount}
+        rxCount={rxCount}
+      />
     </div>
   );
 }

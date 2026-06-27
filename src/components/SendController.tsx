@@ -1,7 +1,15 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { Send, History, RotateCw, CornerDownLeft } from "lucide-react";
+
+type NewlineMode = "none" | "lf" | "crlf";
+const MAX_HISTORY = 20;
+
+interface HistoryItem {
+  text: string;
+  hexMode: boolean;
+}
 
 interface SendControllerProps {
   onSend: (data: number[], text: string) => void;
@@ -12,10 +20,25 @@ export default function SendController({ onSend }: SendControllerProps) {
   const [inputText, setInputText] = useState("");
   const [hexMode, setHexMode] = useState(false);
   const [sending, setSending] = useState(false);
+  const [newlineMode, setNewlineMode] = useState<NewlineMode>("none");
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [cyclicEnabled, setCyclicEnabled] = useState(false);
+  const [cyclicInterval, setCyclicInterval] = useState(1000);
+  const cyclicRef = useRef<number | null>(null);
+  const inputRef = useRef(inputText);
+  const hexRef = useRef(hexMode);
+  const newlineRef = useRef(newlineMode);
 
-  const isValidHex = useCallback((text: string) => {
-    return /^[0-9A-Fa-f\s]*$/.test(text);
-  }, []);
+  useEffect(() => {
+    inputRef.current = inputText;
+  }, [inputText]);
+  useEffect(() => {
+    hexRef.current = hexMode;
+  }, [hexMode]);
+  useEffect(() => {
+    newlineRef.current = newlineMode;
+  }, [newlineMode]);
 
   const hexToBytes = useCallback((hex: string) => {
     const cleaned = hex.replace(/\s+/g, "");
@@ -29,34 +52,59 @@ export default function SendController({ onSend }: SendControllerProps) {
     return bytes;
   }, []);
 
+  const buildBytes = useCallback(
+    (text: string, hex: boolean, nl: NewlineMode) => {
+      let bytes: number[];
+      let displayText: string;
+
+      if (hex) {
+        bytes = hexToBytes(text);
+        if (bytes.length === 0) return null;
+        displayText = bytes.map((b) => String.fromCharCode(b)).join("");
+      } else {
+        bytes = Array.from(new TextEncoder().encode(text));
+        displayText = text;
+      }
+
+      if (nl === "lf") {
+        bytes.push(0x0a);
+      } else if (nl === "crlf") {
+        bytes.push(0x0d, 0x0a);
+      }
+
+      return { bytes, displayText };
+    },
+    [hexToBytes],
+  );
+
+  const doSend = useCallback(
+    async (text: string, hex: boolean, nl: NewlineMode) => {
+      const result = buildBytes(text, hex, nl);
+      if (!result) return;
+
+      setSending(true);
+      try {
+        await invoke("write_serial_data", { data: result.bytes });
+        onSend(result.bytes, result.displayText);
+        setInputText("");
+        setHistory((prev) => {
+          const next = [{ text, hexMode: hex }, ...prev.filter((h) => h.text !== text)];
+          return next.slice(0, MAX_HISTORY);
+        });
+      } catch (e) {
+        console.error("Failed to send:", e);
+      } finally {
+        setSending(false);
+      }
+    },
+    [buildBytes, onSend],
+  );
+
   const handleSend = useCallback(async () => {
     const text = inputText.trim();
     if (!text) return;
-
-    let bytes: number[];
-    let displayText: string;
-
-    if (hexMode) {
-      if (!isValidHex(text)) return;
-      bytes = hexToBytes(text);
-      if (bytes.length === 0) return;
-      displayText = bytes.map((b) => String.fromCharCode(b)).join("");
-    } else {
-      bytes = Array.from(new TextEncoder().encode(text));
-      displayText = text;
-    }
-
-    setSending(true);
-    try {
-      await invoke("write_serial_data", { data: bytes });
-      onSend(bytes, displayText);
-      setInputText("");
-    } catch (e) {
-      console.error("Failed to send:", e);
-    } finally {
-      setSending(false);
-    }
-  }, [inputText, hexMode, isValidHex, hexToBytes, onSend]);
+    await doSend(text, hexMode, newlineMode);
+  }, [inputText, hexMode, newlineMode, doSend]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -74,6 +122,42 @@ export default function SendController({ onSend }: SendControllerProps) {
       setInputText(value);
     }
   }, []);
+
+  const cycleNewline = useCallback(() => {
+    setNewlineMode((prev) => (prev === "none" ? "lf" : prev === "lf" ? "crlf" : "none"));
+  }, []);
+
+  const selectHistory = useCallback((item: HistoryItem) => {
+    setInputText(item.text);
+    setHexMode(item.hexMode);
+    setShowHistory(false);
+  }, []);
+
+  const toggleCyclic = useCallback(() => {
+    setCyclicEnabled((prev) => !prev);
+    setShowHistory(false);
+  }, []);
+
+  useEffect(() => {
+    if (cyclicEnabled) {
+      cyclicRef.current = window.setInterval(() => {
+        const text = inputRef.current.trim();
+        if (!text) return;
+        doSend(text, hexRef.current, newlineRef.current);
+      }, cyclicInterval);
+    } else {
+      if (cyclicRef.current !== null) {
+        clearInterval(cyclicRef.current);
+        cyclicRef.current = null;
+      }
+    }
+    return () => {
+      if (cyclicRef.current !== null) {
+        clearInterval(cyclicRef.current);
+        cyclicRef.current = null;
+      }
+    };
+  }, [cyclicEnabled, cyclicInterval, doSend]);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -97,24 +181,66 @@ export default function SendController({ onSend }: SendControllerProps) {
           HEX
         </button>
         <button
-          className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
+          className={`flex-shrink-0 rounded px-1.5 py-0.5 text-xs font-medium transition-colors ${
+            newlineMode !== "none"
+              ? "bg-accent/20 text-accent"
+              : "text-text-secondary hover:bg-panel-alt hover:text-text-primary"
+          }`}
+          onClick={cycleNewline}
           title={t("send.newline")}
         >
-          <CornerDownLeft size={15} />
+          {newlineMode === "none" ? <CornerDownLeft size={15} /> : newlineMode.toUpperCase()}
         </button>
+        <div className="relative">
+          <button
+            className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
+            title={t("send.history")}
+            onClick={() => setShowHistory((prev) => !prev)}
+          >
+            <History size={15} />
+          </button>
+          {showHistory && history.length > 0 && (
+            <div className="absolute right-0 top-7 z-50 max-h-48 w-64 overflow-auto rounded border border-border bg-panel shadow-lg">
+              {history.map((item, i) => (
+                <div
+                  key={i}
+                  className="cursor-pointer truncate px-2 py-1 text-sm text-text-primary hover:bg-panel-alt"
+                  onClick={() => selectHistory(item)}
+                >
+                  {item.hexMode ? "HEX: " : ""}
+                  {item.text}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         <button
-          className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
-          title={t("send.history")}
-        >
-          <History size={15} />
-        </button>
-        <button
-          className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
+          className={`flex-shrink-0 rounded p-0.5 transition-colors ${
+            cyclicEnabled
+              ? "text-accent"
+              : "text-text-secondary hover:bg-panel-alt hover:text-text-primary"
+          }`}
           title={t("send.cyclic")}
+          onClick={toggleCyclic}
         >
           <RotateCw size={15} />
         </button>
       </div>
+
+      {cyclicEnabled && (
+        <div className="flex items-center gap-2 border-b border-border px-2 py-1">
+          <span className="text-xs text-text-secondary">{t("send.loop_interval")}</span>
+          <input
+            type="number"
+            className="w-20 rounded border border-border bg-panel px-1.5 py-0.5 text-xs text-text-primary outline-none focus:border-accent"
+            value={cyclicInterval}
+            min={100}
+            step={100}
+            onChange={(e) => setCyclicInterval(Number(e.target.value) || 1000)}
+          />
+          <span className="text-xs text-text-muted">ms</span>
+        </div>
+      )}
 
       <div className="flex gap-2 p-2">
         <textarea
