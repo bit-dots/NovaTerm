@@ -104,3 +104,29 @@ pub fn close(state: &SerialState) -> Result<(), String> {
     *name = None;
     Ok(())
 }
+
+pub fn set_dtr(state: &SerialState, enabled: bool) -> Result<(), String> {
+    let mut port = state.port.lock().map_err(|e| e.to_string())?;
+    let port = port.as_mut().ok_or("串口未打开")?;
+    port.write_data_terminal_ready(enabled)
+        .map_err(|e| e.to_string())
+}
+
+pub fn set_rts(state: &SerialState, enabled: bool) -> Result<(), String> {
+    let mut port = state.port.lock().map_err(|e| e.to_string())?;
+    let port = port.as_mut().ok_or("串口未打开")?;
+    port.write_request_to_send(enabled)
+        .map_err(|e| e.to_string())
+}
+
+pub fn read_cts(state: &SerialState) -> Result<bool, String> {
+    let mut port = state.port.lock().map_err(|e| e.to_string())?;
+    let port = port.as_mut().ok_or("串口未打开")?;
+    port.read_clear_to_send().map_err(|e| e.to_string())
+}
+
+pub fn read_dsr(state: &SerialState) -> Result<bool, String> {
+    let mut port = state.port.lock().map_err(|e| e.to_string())?;
+    let port = port.as_mut().ok_or("串口未打开")?;
+    port.read_data_set_ready().map_err(|e| e.to_string())
+}

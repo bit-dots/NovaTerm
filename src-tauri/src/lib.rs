@@ -12,6 +12,10 @@ pub fn run() {
             commands::list_serial_ports,
             commands::open_serial_port,
             commands::close_serial_port,
+            commands::set_dtr,
+            commands::set_rts,
+            commands::read_cts,
+            commands::read_dsr,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

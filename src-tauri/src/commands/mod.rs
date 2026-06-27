@@ -22,3 +22,23 @@ pub fn open_serial_port(
 pub fn close_serial_port(state: tauri::State<'_, SerialState>) -> Result<(), String> {
     serial::close(&state)
 }
+
+#[tauri::command]
+pub fn set_dtr(enabled: bool, state: tauri::State<'_, SerialState>) -> Result<(), String> {
+    serial::set_dtr(&state, enabled)
+}
+
+#[tauri::command]
+pub fn set_rts(enabled: bool, state: tauri::State<'_, SerialState>) -> Result<(), String> {
+    serial::set_rts(&state, enabled)
+}
+
+#[tauri::command]
+pub fn read_cts(state: tauri::State<'_, SerialState>) -> Result<bool, String> {
+    serial::read_cts(&state)
+}
+
+#[tauri::command]
+pub fn read_dsr(state: tauri::State<'_, SerialState>) -> Result<bool, String> {
+    serial::read_dsr(&state)
+}
