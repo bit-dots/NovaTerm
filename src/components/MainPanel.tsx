@@ -32,7 +32,10 @@ export default function MainPanel({ showSend }: MainPanelProps) {
         data: bytes,
         text,
       };
-      setEntries((prev) => [...prev, entry]);
+      setEntries((prev) => {
+        const next = [...prev, entry];
+        return next.length > 10000 ? next.slice(-10000) : next;
+      });
     });
     return () => {
       unlisten.then((fn) => fn());
