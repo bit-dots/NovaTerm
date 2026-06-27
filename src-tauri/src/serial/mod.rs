@@ -71,7 +71,6 @@ fn emit_log(
     let _ = app_handle.emit("internal:log", event);
 }
 
-#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize)]
 pub struct SerialError {
     pub code: String,
@@ -95,6 +94,7 @@ impl SerialError {
         Self::new("IO_ERROR", msg)
     }
 
+    #[allow(dead_code)]
     pub fn internal(msg: &str) -> Self {
         Self::new("INTERNAL", msg)
     }
@@ -132,11 +132,11 @@ pub fn get_internal_logs(state: &SerialState) -> Vec<LogEvent> {
         .unwrap_or_default()
 }
 
-pub fn list_ports() -> Result<Vec<PortInfo>, String> {
+pub fn list_ports() -> Result<Vec<PortInfo>, SerialError> {
     log::debug!("正在扫描系统串口列表...");
     let ports = serialport::available_ports().map_err(|e| {
         log::error!("串口扫描失败: {}", e);
-        e.to_string()
+        SerialError::io_error(&e.to_string())
     })?;
     log::debug!("扫描完成，发现 {} 个串口", ports.len());
     let infos = ports
@@ -167,7 +167,7 @@ pub fn open(
     config: &SerialConfig,
     state: &SerialState,
     app_handle: &tauri::AppHandle,
-) -> Result<(), String> {
+) -> Result<(), SerialError> {
     log::info!("正在打开串口 {} ({}bps, {}数据位, {}停止位, {}校验, {}流控)",
         config.port_name, config.baud_rate, config.data_bits,
         config.stop_bits, config.parity, config.flow_control);
@@ -181,7 +181,7 @@ pub fn open(
         _ => {
             let msg = format!("无效的数据位: {}", config.data_bits);
             log::error!("{}", msg);
-            return Err(msg);
+            return Err(SerialError::invalid_config(&msg));
         }
     };
 
@@ -191,7 +191,7 @@ pub fn open(
         _ => {
             let msg = format!("无效的停止位: {}", config.stop_bits);
             log::error!("{}", msg);
-            return Err(msg);
+            return Err(SerialError::invalid_config(&msg));
         }
     };
 
@@ -202,7 +202,7 @@ pub fn open(
         _ => {
             let msg = format!("无效的校验位: {}", config.parity);
             log::error!("{}", msg);
-            return Err(msg);
+            return Err(SerialError::invalid_config(&msg));
         }
     };
 
@@ -213,7 +213,7 @@ pub fn open(
         _ => {
             let msg = format!("无效的流控: {}", config.flow_control);
             log::error!("{}", msg);
-            return Err(msg);
+            return Err(SerialError::invalid_config(&msg));
         }
     };
 
@@ -226,7 +226,7 @@ pub fn open(
         .open()
         .map_err(|e| {
             log::error!("打开串口 {} 失败: {}", config.port_name, e);
-            e.to_string()
+            SerialError::io_error(&e.to_string())
         })?;
 
     let (tx, rx) = crossbeam_channel::bounded::<Vec<u8>>(256);
@@ -237,7 +237,7 @@ pub fn open(
 
     // 存入串口对象
     {
-        let mut locked = state.port.lock().map_err(|e| e.to_string())?;
+        let mut locked = state.port.lock().map_err(|e| SerialError::io_error(&e.to_string()))?;
         *locked = Some(port);
     }
 
@@ -318,16 +318,16 @@ pub fn open(
         }
     });
 
-    *state.rx.lock().map_err(|e| e.to_string())? = Some(rx);
-    *state.read_handle.lock().map_err(|e| e.to_string())? = Some(handle);
-    *state.port_name.lock().map_err(|e| e.to_string())? = Some(port_name);
+    *state.rx.lock().map_err(|e| SerialError::io_error(&e.to_string()))? = Some(rx);
+    *state.read_handle.lock().map_err(|e| SerialError::io_error(&e.to_string()))? = Some(handle);
+    *state.port_name.lock().map_err(|e| SerialError::io_error(&e.to_string()))? = Some(port_name);
 
     Ok(())
 }
 
-pub fn read_data(state: &SerialState) -> Result<Vec<u8>, String> {
-    let rx = state.rx.lock().map_err(|e| e.to_string())?;
-    let rx = rx.as_ref().ok_or("串口未打开")?;
+pub fn read_data(state: &SerialState) -> Result<Vec<u8>, SerialError> {
+    let rx = state.rx.lock().map_err(|e| SerialError::io_error(&e.to_string()))?;
+    let rx = rx.as_ref().ok_or(SerialError::port_not_connected())?;
     let mut result = Vec::new();
     while let Ok(chunk) = rx.try_recv() {
         result.extend_from_slice(&chunk);
@@ -338,11 +338,11 @@ pub fn read_data(state: &SerialState) -> Result<Vec<u8>, String> {
     Ok(result)
 }
 
-pub fn write_data(state: &SerialState, data: &[u8]) -> Result<(), String> {
+pub fn write_data(state: &SerialState, data: &[u8]) -> Result<(), SerialError> {
     log::debug!("写入 {} 字节数据", data.len());
-    let mut port = state.port.lock().map_err(|e| e.to_string())?;
-    let port = port.as_mut().ok_or("串口未打开")?;
-    port.write_all(data).map_err(|e| e.to_string())
+    let mut port = state.port.lock().map_err(|e| SerialError::io_error(&e.to_string()))?;
+    let port = port.as_mut().ok_or(SerialError::port_not_connected())?;
+    port.write_all(data).map_err(|e| SerialError::io_error(&e.to_string()))
 }
 
 pub fn get_status(state: &SerialState) -> SerialStatus {
@@ -350,13 +350,13 @@ pub fn get_status(state: &SerialState) -> SerialStatus {
     SerialStatus { connected: name.is_some(), port_name: name }
 }
 
-pub fn close(state: &SerialState) -> Result<(), String> {
-    let port_name = state.port_name.lock().map_err(|e| e.to_string())?.clone();
+pub fn close(state: &SerialState) -> Result<(), SerialError> {
+    let port_name = state.port_name.lock().map_err(|e| SerialError::io_error(&e.to_string()))?.clone();
     log::info!("正在关闭串口 {:?}...", port_name);
 
     // 将 port 置为 None，后台读取线程会检测到并退出
     {
-        let mut port = state.port.lock().map_err(|e| e.to_string())?;
+        let mut port = state.port.lock().map_err(|e| SerialError::io_error(&e.to_string()))?;
         *port = None;
     }
 
@@ -372,39 +372,39 @@ pub fn close(state: &SerialState) -> Result<(), String> {
         *rx = None;
     }
 
-    let mut name = state.port_name.lock().map_err(|e| e.to_string())?;
+    let mut name = state.port_name.lock().map_err(|e| SerialError::io_error(&e.to_string()))?;
     *name = None;
 
     log::info!("串口 {:?} 已关闭", port_name);
     Ok(())
 }
 
-pub fn set_dtr(state: &SerialState, enabled: bool) -> Result<(), String> {
+pub fn set_dtr(state: &SerialState, enabled: bool) -> Result<(), SerialError> {
     log::debug!("设置 DTR = {}", enabled);
-    let mut port = state.port.lock().map_err(|e| e.to_string())?;
-    let port = port.as_mut().ok_or("串口未打开")?;
+    let mut port = state.port.lock().map_err(|e| SerialError::io_error(&e.to_string()))?;
+    let port = port.as_mut().ok_or(SerialError::port_not_connected())?;
     port.write_data_terminal_ready(enabled)
-        .map_err(|e| e.to_string())
+        .map_err(|e| SerialError::io_error(&e.to_string()))
 }
 
-pub fn set_rts(state: &SerialState, enabled: bool) -> Result<(), String> {
+pub fn set_rts(state: &SerialState, enabled: bool) -> Result<(), SerialError> {
     log::debug!("设置 RTS = {}", enabled);
-    let mut port = state.port.lock().map_err(|e| e.to_string())?;
-    let port = port.as_mut().ok_or("串口未打开")?;
+    let mut port = state.port.lock().map_err(|e| SerialError::io_error(&e.to_string()))?;
+    let port = port.as_mut().ok_or(SerialError::port_not_connected())?;
     port.write_request_to_send(enabled)
-        .map_err(|e| e.to_string())
+        .map_err(|e| SerialError::io_error(&e.to_string()))
 }
 
-pub fn read_cts(state: &SerialState) -> Result<bool, String> {
-    let mut port = state.port.lock().map_err(|e| e.to_string())?;
-    let port = port.as_mut().ok_or("串口未打开")?;
-    port.read_clear_to_send().map_err(|e| e.to_string())
+pub fn read_cts(state: &SerialState) -> Result<bool, SerialError> {
+    let mut port = state.port.lock().map_err(|e| SerialError::io_error(&e.to_string()))?;
+    let port = port.as_mut().ok_or(SerialError::port_not_connected())?;
+    port.read_clear_to_send().map_err(|e| SerialError::io_error(&e.to_string()))
 }
 
-pub fn read_dsr(state: &SerialState) -> Result<bool, String> {
-    let mut port = state.port.lock().map_err(|e| e.to_string())?;
-    let port = port.as_mut().ok_or("串口未打开")?;
-    port.read_data_set_ready().map_err(|e| e.to_string())
+pub fn read_dsr(state: &SerialState) -> Result<bool, SerialError> {
+    let mut port = state.port.lock().map_err(|e| SerialError::io_error(&e.to_string()))?;
+    let port = port.as_mut().ok_or(SerialError::port_not_connected())?;
+    port.read_data_set_ready().map_err(|e| SerialError::io_error(&e.to_string()))
 }
 
 pub fn start_port_monitor(state: &SerialState, app_handle: tauri::AppHandle) {

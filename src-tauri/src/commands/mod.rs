@@ -1,7 +1,7 @@
-use crate::serial::{self, LogEvent, PortInfo, SerialConfig, SerialStatus, SerialState};
+use crate::serial::{self, LogEvent, PortInfo, SerialConfig, SerialError, SerialStatus, SerialState};
 
 #[tauri::command]
-pub fn list_serial_ports() -> Result<Vec<PortInfo>, String> {
+pub fn list_serial_ports() -> Result<Vec<PortInfo>, SerialError> {
     serial::list_ports()
 }
 
@@ -10,12 +10,12 @@ pub fn open_serial_port(
     config: SerialConfig,
     state: tauri::State<'_, SerialState>,
     app_handle: tauri::AppHandle,
-) -> Result<(), String> {
+) -> Result<(), SerialError> {
     serial::open(&config, &state, &app_handle)
 }
 
 #[tauri::command]
-pub fn close_serial_port(state: tauri::State<'_, SerialState>) -> Result<(), String> {
+pub fn close_serial_port(state: tauri::State<'_, SerialState>) -> Result<(), SerialError> {
     serial::close(&state)
 }
 
@@ -30,7 +30,7 @@ pub fn get_internal_logs(state: tauri::State<'_, SerialState>) -> Vec<LogEvent> 
 }
 
 #[tauri::command]
-pub fn read_serial_data(state: tauri::State<'_, SerialState>) -> Result<Vec<u8>, String> {
+pub fn read_serial_data(state: tauri::State<'_, SerialState>) -> Result<Vec<u8>, SerialError> {
     serial::read_data(&state)
 }
 
@@ -38,26 +38,26 @@ pub fn read_serial_data(state: tauri::State<'_, SerialState>) -> Result<Vec<u8>,
 pub fn write_serial_data(
     data: Vec<u8>,
     state: tauri::State<'_, SerialState>,
-) -> Result<(), String> {
+) -> Result<(), SerialError> {
     serial::write_data(&state, &data)
 }
 
 #[tauri::command]
-pub fn set_dtr(enabled: bool, state: tauri::State<'_, SerialState>) -> Result<(), String> {
+pub fn set_dtr(enabled: bool, state: tauri::State<'_, SerialState>) -> Result<(), SerialError> {
     serial::set_dtr(&state, enabled)
 }
 
 #[tauri::command]
-pub fn set_rts(enabled: bool, state: tauri::State<'_, SerialState>) -> Result<(), String> {
+pub fn set_rts(enabled: bool, state: tauri::State<'_, SerialState>) -> Result<(), SerialError> {
     serial::set_rts(&state, enabled)
 }
 
 #[tauri::command]
-pub fn read_cts(state: tauri::State<'_, SerialState>) -> Result<bool, String> {
+pub fn read_cts(state: tauri::State<'_, SerialState>) -> Result<bool, SerialError> {
     serial::read_cts(&state)
 }
 
 #[tauri::command]
-pub fn read_dsr(state: tauri::State<'_, SerialState>) -> Result<bool, String> {
+pub fn read_dsr(state: tauri::State<'_, SerialState>) -> Result<bool, SerialError> {
     serial::read_dsr(&state)
 }
