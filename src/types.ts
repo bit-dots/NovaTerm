@@ -60,12 +60,19 @@ export const PARITY_OPTIONS = [
   { value: "odd", label: "Odd" },
 ] as const;
 
+export interface Macro {
+  id: string;
+  name: string;
+  command: string;
+}
+
 export interface AppSettings {
   theme: "dark" | "light";
   language: "zh" | "en";
   maxLines: number;
   logFontSize: number;
   defaultEncoding: "utf-8" | "gb2312" | "latin-1";
+  macros: Macro[];
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -74,4 +81,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   maxLines: 10000,
   logFontSize: 16,
   defaultEncoding: "utf-8",
+  macros: [],
 };

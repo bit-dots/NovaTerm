@@ -11,6 +11,9 @@ interface MainPanelProps {
   maxLines: number;
   logFontSize: number;
   onFontSizeChange: (size: number) => void;
+  addEntryRef?: React.MutableRefObject<
+    ((type: "rx" | "tx", data: number[], text: string) => void) | null
+  >;
 }
 
 let nextId = 1;
@@ -22,6 +25,7 @@ export default function MainPanel({
   maxLines,
   logFontSize,
   onFontSizeChange,
+  addEntryRef,
 }: MainPanelProps) {
   const [splitRatio, setSplitRatio] = useState(65);
   const [entries, setEntries] = useState<LogEntry[]>([]);
@@ -73,6 +77,12 @@ export default function MainPanel({
       unlisten.then((fn) => fn());
     };
   }, [addEntry]);
+
+  useEffect(() => {
+    if (addEntryRef) {
+      addEntryRef.current = addEntry;
+    }
+  });
 
   const onMouseDown = useCallback(() => {
     dragging.current = true;
