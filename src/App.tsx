@@ -11,8 +11,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<TabId>("serial");
   const [showSend, setShowSend] = useState(false);
   const [config, setConfig] = useState<SerialConfig>(DEFAULT_CONFIG);
-  const [_connected, setConnected] = useState(false);
-  void setConnected; // will be used in S3-03
+  const [connected, setConnected] = useState(false);
 
   return (
     <div className="flex h-screen flex-col bg-editor">
@@ -23,7 +22,8 @@ function App() {
           activeTab={activeTab}
           config={config}
           onConfigChange={setConfig}
-          connected={_connected}
+          connected={connected}
+          onConnectChange={setConnected}
         />
         <MainPanel showSend={showSend} />
       </div>

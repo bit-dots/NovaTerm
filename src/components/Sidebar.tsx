@@ -12,12 +12,20 @@ interface SidebarProps {
   config: SerialConfig;
   onConfigChange: (config: SerialConfig) => void;
   connected: boolean;
+  onConnectChange: (connected: boolean) => void;
 }
 
-export default function Sidebar({ activeTab, config, onConfigChange, connected }: SidebarProps) {
+export default function Sidebar({
+  activeTab,
+  config,
+  onConfigChange,
+  connected,
+  onConnectChange,
+}: SidebarProps) {
   const { t } = useTranslation();
   const [ports, setPorts] = useState<PortInfo[]>([]);
   const [loading, setLoading] = useState(false);
+  const [connecting, setConnecting] = useState(false);
   const [dtrEnabled, setDtrEnabled] = useState(false);
   const [rtsEnabled, setRtsEnabled] = useState(false);
 
@@ -34,6 +42,34 @@ export default function Sidebar({ activeTab, config, onConfigChange, connected }
       setPorts([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleConnect = async () => {
+    if (connected) {
+      setConnecting(true);
+      try {
+        await invoke("close_serial_port");
+        onConnectChange(false);
+        setDtrEnabled(false);
+        setRtsEnabled(false);
+      } catch (e) {
+        console.error("Failed to disconnect:", e);
+      } finally {
+        setConnecting(false);
+      }
+    } else {
+      if (!config.port_name) return;
+      setConnecting(true);
+      try {
+        await invoke("open_serial_port", { config });
+        onConnectChange(true);
+      } catch (e) {
+        console.error("Failed to connect:", e);
+        alert(`${t("serial.connect_failed")}: ${e}`);
+      } finally {
+        setConnecting(false);
+      }
     }
   };
 
@@ -101,6 +137,19 @@ export default function Sidebar({ activeTab, config, onConfigChange, connected }
             ))
           )}
         </select>
+        <div className="px-2 pb-2">
+          <button
+            onClick={handleConnect}
+            disabled={connecting || (!connected && !config.port_name)}
+            className={`w-full rounded px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-50 ${
+              connected
+                ? "bg-green-600/20 text-green-500 hover:bg-green-600/30"
+                : "bg-accent/20 text-accent hover:bg-accent/30"
+            }`}
+          >
+            {connecting ? "..." : connected ? t("serial.disconnect") : t("serial.connect")}
+          </button>
+        </div>
       </CollapsibleSection>
 
       <CollapsibleSection title={t("sidebar.parameters")} defaultOpen={false}>

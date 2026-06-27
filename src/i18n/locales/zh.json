@@ -24,7 +24,8 @@
     "rts": "RTS",
     "refresh": "刷新",
     "no_ports": "未检测到串口",
-    "connect_first": "请先连接串口"
+    "connect_first": "请先连接串口",
+    "connect_failed": "连接失败"
   },
   "send": {
     "title": "发送",

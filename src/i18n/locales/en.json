@@ -24,7 +24,8 @@
     "rts": "RTS",
     "refresh": "Refresh",
     "no_ports": "No serial ports detected",
-    "connect_first": "Connect to a serial port first"
+    "connect_first": "Connect to a serial port first",
+    "connect_failed": "Connection failed"
   },
   "send": {
     "title": "Send",
