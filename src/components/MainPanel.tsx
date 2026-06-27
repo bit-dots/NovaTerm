@@ -16,31 +16,35 @@ export default function MainPanel({ showSend }: MainPanelProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
 
+  const addEntry = useCallback((type: "rx" | "tx", data: number[], text: string) => {
+    const now = new Date();
+    const timestamp =
+      now.toLocaleTimeString("en-US", { hour12: false }) +
+      "." +
+      String(now.getMilliseconds()).padStart(3, "0");
+    const entry: LogEntry = {
+      id: nextId++,
+      type,
+      timestamp,
+      data,
+      text,
+    };
+    setEntries((prev) => {
+      const next = [...prev, entry];
+      return next.length > 10000 ? next.slice(-10000) : next;
+    });
+  }, []);
+
   useEffect(() => {
     const unlisten = listen<{ data: number[] }>("serial:data-received", (event) => {
       const bytes = event.payload.data;
       const text = new TextDecoder().decode(new Uint8Array(bytes));
-      const now = new Date();
-      const timestamp =
-        now.toLocaleTimeString("en-US", { hour12: false }) +
-        "." +
-        String(now.getMilliseconds()).padStart(3, "0");
-      const entry: LogEntry = {
-        id: nextId++,
-        type: "rx",
-        timestamp,
-        data: bytes,
-        text,
-      };
-      setEntries((prev) => {
-        const next = [...prev, entry];
-        return next.length > 10000 ? next.slice(-10000) : next;
-      });
+      addEntry("rx", bytes, text);
     });
     return () => {
       unlisten.then((fn) => fn());
     };
-  }, []);
+  }, [addEntry]);
 
   const onMouseDown = useCallback(() => {
     dragging.current = true;
@@ -86,7 +90,7 @@ export default function MainPanel({ showSend }: MainPanelProps) {
           </div>
 
           <div className="flex flex-1">
-            <SendController />
+            <SendController onSend={(data, text) => addEntry("tx", data, text)} />
           </div>
         </>
       )}
