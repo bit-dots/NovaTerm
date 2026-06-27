@@ -1,6 +1,6 @@
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CircleStop, Trash2, Download, Clock, Binary } from "lucide-react";
+import { CircleStop, Play, Trash2, Download, Clock, Binary } from "lucide-react";
 import type { LogEntry } from "../types";
 
 interface LogMonitorProps {
@@ -10,11 +10,40 @@ interface LogMonitorProps {
 
 export default function LogMonitor({ entries, onClear }: LogMonitorProps) {
   const { t } = useTranslation();
+  const [paused, setPaused] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const pausedRef = useRef(false);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [entries]);
+    pausedRef.current = paused;
+  }, [paused]);
+
+  useEffect(() => {
+    if (!paused) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [entries, paused]);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 30;
+    if (atBottom && pausedRef.current) {
+      setPaused(false);
+    } else if (!atBottom && !pausedRef.current) {
+      setPaused(true);
+    }
+  }, []);
+
+  const handleTogglePause = useCallback(() => {
+    setPaused((prev) => {
+      if (prev) {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      }
+      return !prev;
+    });
+  }, []);
 
   const handleExport = useCallback(() => {
     const lines = entries.map((e) => `[${e.timestamp}] ${e.text}`);
@@ -54,9 +83,10 @@ export default function LogMonitor({ entries, onClear }: LogMonitorProps) {
         </button>
         <button
           className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
-          title={t("receive.pause")}
+          title={paused ? t("receive.resume") : t("receive.pause")}
+          onClick={handleTogglePause}
         >
-          <CircleStop size={15} />
+          {paused ? <Play size={15} /> : <CircleStop size={15} />}
         </button>
         <button
           className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
@@ -74,7 +104,11 @@ export default function LogMonitor({ entries, onClear }: LogMonitorProps) {
         </button>
       </div>
 
-      <div className="flex-1 overflow-auto p-3 font-mono text-base leading-relaxed">
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-auto p-3 font-mono text-base leading-relaxed"
+      >
         {entries.length === 0 ? (
           <span className="text-text-muted">{t("receive.waiting")}</span>
         ) : (
