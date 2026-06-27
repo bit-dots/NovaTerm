@@ -11,6 +11,8 @@ interface LogMonitorProps {
 export default function LogMonitor({ entries, onClear }: LogMonitorProps) {
   const { t } = useTranslation();
   const [paused, setPaused] = useState(false);
+  const [hexMode, setHexMode] = useState(false);
+  const [showTimestamp, setShowTimestamp] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const pausedRef = useRef(false);
@@ -70,14 +72,24 @@ export default function LogMonitor({ entries, onClear }: LogMonitorProps) {
         </span>
         <div className="min-w-2 flex-1" />
         <button
-          className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
+          className={`flex-shrink-0 rounded p-0.5 transition-colors ${
+            showTimestamp
+              ? "text-accent"
+              : "text-text-secondary hover:bg-panel-alt hover:text-text-primary"
+          }`}
           title={t("receive.timestamp")}
+          onClick={() => setShowTimestamp(!showTimestamp)}
         >
           <Clock size={15} />
         </button>
         <button
-          className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
+          className={`flex-shrink-0 rounded p-0.5 transition-colors ${
+            hexMode
+              ? "text-accent"
+              : "text-text-secondary hover:bg-panel-alt hover:text-text-primary"
+          }`}
           title={t("receive.hex")}
+          onClick={() => setHexMode(!hexMode)}
         >
           <Binary size={15} />
         </button>
@@ -112,15 +124,29 @@ export default function LogMonitor({ entries, onClear }: LogMonitorProps) {
         {entries.length === 0 ? (
           <span className="text-text-muted">{t("receive.waiting")}</span>
         ) : (
-          entries.map((entry) => (
-            <div key={entry.id} className="hover:bg-panel-alt/50">
-              <span className="select-none text-text-muted">{entry.timestamp}</span>
-              <span className={entry.type === "tx" ? "text-green-400" : "text-text-primary"}>
-                {" "}
-                {entry.text}
-              </span>
-            </div>
-          ))
+          entries.map((entry) => {
+            const hexBytes = entry.data
+              .map((b) => b.toString(16).toUpperCase().padStart(2, "0"))
+              .join(" ");
+            const colorClass = entry.type === "tx" ? "text-green-400" : "text-text-primary";
+
+            return (
+              <div key={entry.id} className="hover:bg-panel-alt/50">
+                {showTimestamp && (
+                  <span className="select-none text-text-muted">{entry.timestamp}</span>
+                )}
+                {hexMode ? (
+                  <>
+                    <span className={colorClass}> {hexBytes}</span>
+                    <span className="select-none text-text-muted"> │</span>
+                    <span className="text-text-muted"> {entry.text}</span>
+                  </>
+                ) : (
+                  <span className={colorClass}> {entry.text}</span>
+                )}
+              </div>
+            );
+          })
         )}
         <div ref={bottomRef} />
       </div>
