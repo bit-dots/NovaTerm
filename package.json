@@ -53,7 +53,7 @@
       "prettier --write"
     ],
     "*.rs": [
-      "cargo fmt --"
+      "cd src-tauri && cargo fmt --"
     ]
   }
 }
