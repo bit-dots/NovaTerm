@@ -13,6 +13,10 @@ interface SidebarProps {
   onConfigChange: (config: SerialConfig) => void;
   connected: boolean;
   onConnectChange: (connected: boolean) => void;
+  dtrEnabled: boolean;
+  onDtrChange: (enabled: boolean) => void;
+  rtsEnabled: boolean;
+  onRtsChange: (enabled: boolean) => void;
 }
 
 export default function Sidebar({
@@ -21,13 +25,15 @@ export default function Sidebar({
   onConfigChange,
   connected,
   onConnectChange,
+  dtrEnabled,
+  onDtrChange,
+  rtsEnabled,
+  onRtsChange,
 }: SidebarProps) {
   const { t } = useTranslation();
   const [ports, setPorts] = useState<PortInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [connecting, setConnecting] = useState(false);
-  const [dtrEnabled, setDtrEnabled] = useState(false);
-  const [rtsEnabled, setRtsEnabled] = useState(false);
 
   const loadPorts = async () => {
     setLoading(true);
@@ -51,8 +57,8 @@ export default function Sidebar({
       try {
         await invoke("close_serial_port");
         onConnectChange(false);
-        setDtrEnabled(false);
-        setRtsEnabled(false);
+        onDtrChange(false);
+        onRtsChange(false);
       } catch (e) {
         console.error("Failed to disconnect:", e);
       } finally {
@@ -249,11 +255,11 @@ export default function Sidebar({
               connected
                 ? async () => {
                     const next = !dtrEnabled;
-                    setDtrEnabled(next);
+                    onDtrChange(next);
                     try {
                       await invoke("set_dtr", { enabled: next });
                     } catch {
-                      setDtrEnabled(!next);
+                      onDtrChange(!next);
                     }
                   }
                 : undefined
@@ -281,11 +287,11 @@ export default function Sidebar({
               connected
                 ? async () => {
                     const next = !rtsEnabled;
-                    setRtsEnabled(next);
+                    onRtsChange(next);
                     try {
                       await invoke("set_rts", { enabled: next });
                     } catch {
-                      setRtsEnabled(!next);
+                      onRtsChange(!next);
                     }
                   }
                 : undefined

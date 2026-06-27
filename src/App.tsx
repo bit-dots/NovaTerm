@@ -14,6 +14,8 @@ function App() {
   const [connected, setConnected] = useState(false);
   const [txCount, setTxCount] = useState(0);
   const [rxCount, setRxCount] = useState(0);
+  const [dtrEnabled, setDtrEnabled] = useState(false);
+  const [rtsEnabled, setRtsEnabled] = useState(false);
 
   return (
     <div className="flex h-screen flex-col bg-editor">
@@ -26,6 +28,10 @@ function App() {
           onConfigChange={setConfig}
           connected={connected}
           onConnectChange={setConnected}
+          dtrEnabled={dtrEnabled}
+          onDtrChange={setDtrEnabled}
+          rtsEnabled={rtsEnabled}
+          onRtsChange={setRtsEnabled}
         />
         <MainPanel
           showSend={showSend}
@@ -41,6 +47,9 @@ function App() {
         baudRate={config.baud_rate}
         txCount={txCount}
         rxCount={rxCount}
+        flowControl={config.flow_control}
+        dtrEnabled={dtrEnabled}
+        rtsEnabled={rtsEnabled}
       />
     </div>
   );

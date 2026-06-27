@@ -10,6 +10,9 @@ interface StatusBarProps {
   baudRate: number;
   txCount: number;
   rxCount: number;
+  flowControl: string;
+  dtrEnabled: boolean;
+  rtsEnabled: boolean;
 }
 
 export default function StatusBar({
@@ -20,6 +23,9 @@ export default function StatusBar({
   baudRate,
   txCount,
   rxCount,
+  flowControl,
+  dtrEnabled,
+  rtsEnabled,
 }: StatusBarProps) {
   const { t } = useTranslation();
   const [dark, setDark] = useState(true);
@@ -62,6 +68,21 @@ export default function StatusBar({
         <span>{t("status.rx")}</span>
         <ArrowDown size={12} />
         <span className="text-blue-400">{rxCount}</span>
+      </div>
+
+      <div className="flex items-center gap-1.5">
+        <span className="text-xs text-text-muted">{t("serial.flow_control")}</span>
+        <span>{flowControl === "none" ? "None" : flowControl.toUpperCase()}</span>
+      </div>
+
+      <div className="flex items-center gap-1.5">
+        <span className="text-xs text-text-muted">DTR</span>
+        <Circle size={8} className={dtrEnabled ? "text-green-400" : "text-text-muted"} />
+      </div>
+
+      <div className="flex items-center gap-1.5">
+        <span className="text-xs text-text-muted">RTS</span>
+        <Circle size={8} className={rtsEnabled ? "text-green-400" : "text-text-muted"} />
       </div>
 
       <button
