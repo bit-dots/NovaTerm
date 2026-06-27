@@ -1,4 +1,4 @@
-use crate::serial::{self, PortInfo, SerialConfig, SerialStatus, SerialState};
+use crate::serial::{self, LogEvent, PortInfo, SerialConfig, SerialStatus, SerialState};
 
 #[tauri::command]
 pub fn list_serial_ports() -> Result<Vec<PortInfo>, String> {
@@ -22,6 +22,11 @@ pub fn close_serial_port(state: tauri::State<'_, SerialState>) -> Result<(), Str
 #[tauri::command]
 pub fn get_serial_status(state: tauri::State<'_, SerialState>) -> SerialStatus {
     serial::get_status(&state)
+}
+
+#[tauri::command]
+pub fn get_internal_logs(state: tauri::State<'_, SerialState>) -> Vec<LogEvent> {
+    serial::get_internal_logs(&state)
 }
 
 #[tauri::command]

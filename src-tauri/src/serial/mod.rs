@@ -47,6 +47,30 @@ pub struct StatusChangedEvent {
     pub error: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub struct LogEvent {
+    pub level: String,
+    pub message: String,
+}
+
+fn emit_log(
+    app_handle: &tauri::AppHandle,
+    buffer: Option<&Arc<Mutex<Vec<LogEvent>>>>,
+    level: &str,
+    message: &str,
+) {
+    let event = LogEvent { level: level.to_string(), message: message.to_string() };
+    if let Some(buf) = buffer {
+        if let Ok(mut logs) = buf.lock() {
+            if logs.len() >= MAX_LOG_ENTRIES {
+                logs.remove(0);
+            }
+            logs.push(event.clone());
+        }
+    }
+    let _ = app_handle.emit("internal:log", event);
+}
+
 #[allow(dead_code)]
 #[derive(Debug, Clone, Serialize)]
 pub struct SerialError {
@@ -83,7 +107,10 @@ pub struct SerialState {
     pub read_handle: Mutex<Option<std::thread::JoinHandle<()>>>,
     pub monitor_running: Arc<AtomicBool>,
     pub monitor_handle: Mutex<Option<std::thread::JoinHandle<()>>>,
+    pub log_buffer: Arc<Mutex<Vec<LogEvent>>>,
 }
+
+const MAX_LOG_ENTRIES: usize = 500;
 
 impl SerialState {
     pub fn new() -> Self {
@@ -94,12 +121,24 @@ impl SerialState {
             read_handle: Mutex::new(None),
             monitor_running: Arc::new(AtomicBool::new(false)),
             monitor_handle: Mutex::new(None),
+            log_buffer: Arc::new(Mutex::new(Vec::with_capacity(MAX_LOG_ENTRIES))),
         }
     }
 }
 
+pub fn get_internal_logs(state: &SerialState) -> Vec<LogEvent> {
+    state.log_buffer.lock()
+        .map(|logs| logs.clone())
+        .unwrap_or_default()
+}
+
 pub fn list_ports() -> Result<Vec<PortInfo>, String> {
-    let ports = serialport::available_ports().map_err(|e| e.to_string())?;
+    log::debug!("正在扫描系统串口列表...");
+    let ports = serialport::available_ports().map_err(|e| {
+        log::error!("串口扫描失败: {}", e);
+        e.to_string()
+    })?;
+    log::debug!("扫描完成，发现 {} 个串口", ports.len());
     let infos = ports
         .into_iter()
         .map(|p| {
@@ -129,32 +168,53 @@ pub fn open(
     state: &SerialState,
     app_handle: &tauri::AppHandle,
 ) -> Result<(), String> {
+    log::info!("正在打开串口 {} ({}bps, {}数据位, {}停止位, {}校验, {}流控)",
+        config.port_name, config.baud_rate, config.data_bits,
+        config.stop_bits, config.parity, config.flow_control);
+    emit_log(app_handle, Some(&state.log_buffer), "info", &format!("正在打开串口 {}...", config.port_name));
+
     let data_bits = match config.data_bits {
         5 => serialport::DataBits::Five,
         6 => serialport::DataBits::Six,
         7 => serialport::DataBits::Seven,
         8 => serialport::DataBits::Eight,
-        _ => return Err(format!("无效的数据位: {}", config.data_bits)),
+        _ => {
+            let msg = format!("无效的数据位: {}", config.data_bits);
+            log::error!("{}", msg);
+            return Err(msg);
+        }
     };
 
     let stop_bits = match config.stop_bits {
         1 => serialport::StopBits::One,
         2 => serialport::StopBits::Two,
-        _ => return Err(format!("无效的停止位: {}", config.stop_bits)),
+        _ => {
+            let msg = format!("无效的停止位: {}", config.stop_bits);
+            log::error!("{}", msg);
+            return Err(msg);
+        }
     };
 
     let parity = match config.parity.to_lowercase().as_str() {
         "none" => serialport::Parity::None,
         "even" => serialport::Parity::Even,
         "odd" => serialport::Parity::Odd,
-        _ => return Err(format!("无效的校验位: {}", config.parity)),
+        _ => {
+            let msg = format!("无效的校验位: {}", config.parity);
+            log::error!("{}", msg);
+            return Err(msg);
+        }
     };
 
     let flow_control = match config.flow_control.to_lowercase().as_str() {
         "none" => serialport::FlowControl::None,
         "rts-cts" => serialport::FlowControl::Hardware,
         "xon-xoff" => serialport::FlowControl::Software,
-        _ => return Err(format!("无效的流控: {}", config.flow_control)),
+        _ => {
+            let msg = format!("无效的流控: {}", config.flow_control);
+            log::error!("{}", msg);
+            return Err(msg);
+        }
     };
 
     let port = serialport::new(&config.port_name, config.baud_rate)
@@ -164,7 +224,10 @@ pub fn open(
         .flow_control(flow_control)
         .timeout(Duration::from_millis(10))
         .open()
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| {
+            log::error!("打开串口 {} 失败: {}", config.port_name, e);
+            e.to_string()
+        })?;
 
     let (tx, rx) = crossbeam_channel::bounded::<Vec<u8>>(256);
     let port_arc = Arc::clone(&state.port);
@@ -177,6 +240,9 @@ pub fn open(
         let mut locked = state.port.lock().map_err(|e| e.to_string())?;
         *locked = Some(port);
     }
+
+    log::info!("串口 {} 打开成功，启动后台读取线程", port_name);
+    emit_log(app_handle, Some(&state.log_buffer), "info", &format!("串口 {} 连接成功", port_name));
 
     // 发射连接成功事件
     let _ = app_handle.emit(
@@ -237,6 +303,7 @@ pub fn open(
                 }
                 Err(e) => {
                     drop(port_guard);
+                    log::error!("串口读取线程错误: {}", e);
                     let _ = app_handle_clone.emit(
                         "serial:status-changed",
                         StatusChangedEvent {
@@ -265,10 +332,14 @@ pub fn read_data(state: &SerialState) -> Result<Vec<u8>, String> {
     while let Ok(chunk) = rx.try_recv() {
         result.extend_from_slice(&chunk);
     }
+    if !result.is_empty() {
+        log::trace!("读取到 {} 字节数据", result.len());
+    }
     Ok(result)
 }
 
 pub fn write_data(state: &SerialState, data: &[u8]) -> Result<(), String> {
+    log::debug!("写入 {} 字节数据", data.len());
     let mut port = state.port.lock().map_err(|e| e.to_string())?;
     let port = port.as_mut().ok_or("串口未打开")?;
     port.write_all(data).map_err(|e| e.to_string())
@@ -280,6 +351,9 @@ pub fn get_status(state: &SerialState) -> SerialStatus {
 }
 
 pub fn close(state: &SerialState) -> Result<(), String> {
+    let port_name = state.port_name.lock().map_err(|e| e.to_string())?.clone();
+    log::info!("正在关闭串口 {:?}...", port_name);
+
     // 将 port 置为 None，后台读取线程会检测到并退出
     {
         let mut port = state.port.lock().map_err(|e| e.to_string())?;
@@ -300,10 +374,13 @@ pub fn close(state: &SerialState) -> Result<(), String> {
 
     let mut name = state.port_name.lock().map_err(|e| e.to_string())?;
     *name = None;
+
+    log::info!("串口 {:?} 已关闭", port_name);
     Ok(())
 }
 
 pub fn set_dtr(state: &SerialState, enabled: bool) -> Result<(), String> {
+    log::debug!("设置 DTR = {}", enabled);
     let mut port = state.port.lock().map_err(|e| e.to_string())?;
     let port = port.as_mut().ok_or("串口未打开")?;
     port.write_data_terminal_ready(enabled)
@@ -311,6 +388,7 @@ pub fn set_dtr(state: &SerialState, enabled: bool) -> Result<(), String> {
 }
 
 pub fn set_rts(state: &SerialState, enabled: bool) -> Result<(), String> {
+    log::debug!("设置 RTS = {}", enabled);
     let mut port = state.port.lock().map_err(|e| e.to_string())?;
     let port = port.as_mut().ok_or("串口未打开")?;
     port.write_request_to_send(enabled)
@@ -330,6 +408,7 @@ pub fn read_dsr(state: &SerialState) -> Result<bool, String> {
 }
 
 pub fn start_port_monitor(state: &SerialState, app_handle: tauri::AppHandle) {
+    log::info!("启动串口热插拔监控...");
     state.monitor_running.store(true, Ordering::SeqCst);
     let running = Arc::clone(&state.monitor_running);
 
@@ -345,6 +424,7 @@ pub fn start_port_monitor(state: &SerialState, app_handle: tauri::AppHandle) {
 
                 for name in &current {
                     if !prev_names.contains(name) {
+                        log::info!("检测到新串口设备: {}", name);
                         if let Some(info) = ports.iter().find(|p| p.port_name == *name) {
                             let (port_type, description) =
                                 match &info.port_type {
@@ -379,6 +459,7 @@ pub fn start_port_monitor(state: &SerialState, app_handle: tauri::AppHandle) {
 
                 for name in &prev_names {
                     if !current.contains(name) {
+                        log::info!("串口设备已移除: {}", name);
                         let _ = app_handle.emit(
                             "serial:port-removed",
                             PortChangeEvent {
