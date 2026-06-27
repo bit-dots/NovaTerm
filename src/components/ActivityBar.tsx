@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { Cable, Terminal, Zap, Settings } from "lucide-react";
+import { Cable, Terminal, Settings } from "lucide-react";
 
-export type TabId = "serial" | "macro" | "ssh";
+export type TabId = "serial" | "ssh";
 
 interface Tab {
   id: TabId;
@@ -12,7 +12,6 @@ interface Tab {
 
 const tabs: Tab[] = [
   { id: "serial", icon: Cable, label: "串口", disabled: false },
-  { id: "macro", icon: Zap, label: "快捷命令", disabled: false },
   { id: "ssh", icon: Terminal, label: "SSH", disabled: true },
 ];
 

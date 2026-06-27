@@ -2,6 +2,8 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { Send, History, RotateCw, CornerDownLeft } from "lucide-react";
+import type { Macro } from "../types";
+import MacroManager from "./MacroManager";
 
 type NewlineMode = "none" | "lf" | "crlf";
 const MAX_HISTORY = 20;
@@ -13,9 +15,11 @@ interface HistoryItem {
 
 interface SendControllerProps {
   onSend: (data: number[], text: string) => void;
+  macros: Macro[];
+  onMacrosChange: (macros: Macro[]) => void;
 }
 
-export default function SendController({ onSend }: SendControllerProps) {
+export default function SendController({ onSend, macros, onMacrosChange }: SendControllerProps) {
   const { t } = useTranslation();
   const [inputText, setInputText] = useState("");
   const [hexMode, setHexMode] = useState(false);
@@ -107,6 +111,23 @@ export default function SendController({ onSend }: SendControllerProps) {
     if (!text) return;
     await doSend(text, hexMode, newlineMode);
   }, [inputText, hexMode, newlineMode, doSend]);
+
+  const handleMacroSend = useCallback(
+    async (macro: Macro) => {
+      if (!macro.command) return;
+      const bytes = Array.from(new TextEncoder().encode(macro.command));
+      setSending(true);
+      try {
+        await invoke("write_serial_data", { data: bytes });
+        onSend(bytes, macro.command);
+      } catch (e) {
+        console.error("Failed to send macro:", e);
+      } finally {
+        setSending(false);
+      }
+    },
+    [onSend],
+  );
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -241,6 +262,31 @@ export default function SendController({ onSend }: SendControllerProps) {
             onChange={(e) => setCyclicInterval(Number(e.target.value) || 1000)}
           />
           <span className="text-xs text-text-muted">ms</span>
+        </div>
+      )}
+
+      {macros.length > 0 ? (
+        <div className="flex items-center gap-1.5 overflow-x-auto border-b border-border px-2 py-1.5">
+          {macros.map((macro) => (
+            <button
+              key={macro.id}
+              onClick={() => handleMacroSend(macro)}
+              disabled={sending}
+              className="flex-shrink-0 rounded-full border border-border bg-panel-alt px-2.5 py-0.5 text-xs text-text-primary transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
+              title={macro.command}
+            >
+              {macro.name}
+            </button>
+          ))}
+          <div className="flex-shrink-0 ml-0.5">
+            <MacroManager macros={macros} onMacrosChange={onMacrosChange} />
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center border-b border-border px-2 py-1">
+          <span className="text-xs text-text-muted">{t("macro.empty")}</span>
+          <div className="flex-1" />
+          <MacroManager macros={macros} onMacrosChange={onMacrosChange} />
         </div>
       )}
 

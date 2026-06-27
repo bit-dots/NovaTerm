@@ -3,10 +3,9 @@ import { invoke } from "@tauri-apps/api/core";
 import { RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { TabId } from "./ActivityBar";
-import type { PortInfo, SerialConfig, Macro } from "../types";
+import type { PortInfo, SerialConfig } from "../types";
 import { BAUD_RATES, DATA_BITS_OPTIONS, STOP_BITS_OPTIONS, PARITY_OPTIONS } from "../types";
 import CollapsibleSection from "./common/CollapsibleSection";
-import MacroPanel from "./MacroPanel";
 
 interface SidebarProps {
   activeTab: TabId;
@@ -18,9 +17,6 @@ interface SidebarProps {
   onDtrChange: (enabled: boolean) => void;
   rtsEnabled: boolean;
   onRtsChange: (enabled: boolean) => void;
-  macros: Macro[];
-  onMacrosChange: (macros: Macro[]) => void;
-  onMacroSend: (data: number[], text: string) => void;
 }
 
 export default function Sidebar({
@@ -33,9 +29,6 @@ export default function Sidebar({
   onDtrChange,
   rtsEnabled,
   onRtsChange,
-  macros,
-  onMacrosChange,
-  onMacroSend,
 }: SidebarProps) {
   const { t } = useTranslation();
   const [ports, setPorts] = useState<PortInfo[]>([]);
@@ -126,9 +119,7 @@ export default function Sidebar({
   if (activeTab !== "serial") {
     return (
       <div className="flex w-60 flex-col border-r border-border bg-panel-alt">
-        {activeTab === "macro" && (
-          <MacroPanel macros={macros} onMacrosChange={onMacrosChange} onSend={onMacroSend} />
-        )}
+        {activeTab === "ssh" && null}
       </div>
     );
   }

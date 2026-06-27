@@ -59,7 +59,8 @@
     "delete": "Delete",
     "name": "Name",
     "command": "Command",
-    "empty": "No macros"
+    "empty": "No macros",
+    "save": "Save"
   },
   "settings": {
     "title": "Settings",

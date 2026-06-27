@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { invoke } from "@tauri-apps/api/core";
 import ActivityBar, { type TabId } from "./components/ActivityBar";
 import Sidebar from "./components/Sidebar";
 import MainPanel from "./components/MainPanel";
@@ -36,20 +35,6 @@ function App() {
   const [rtsEnabled, setRtsEnabled] = useState(false);
   const [settings, setSettings] = useState<AppSettings>(loadSettings);
 
-  const addEntryRef = useRef<((type: "rx" | "tx", data: number[], text: string) => void) | null>(
-    null,
-  );
-
-  const handleMacroSend = useCallback(async (data: number[], text: string) => {
-    try {
-      await invoke("write_serial_data", { data });
-      setTxCount((c) => c + data.length);
-      addEntryRef.current?.("tx", data, text);
-    } catch (e) {
-      console.error("Failed to send macro:", e);
-    }
-  }, []);
-
   useEffect(() => {
     localStorage.setItem("settings", JSON.stringify(settings));
   }, [settings]);
@@ -82,9 +67,6 @@ function App() {
           onDtrChange={setDtrEnabled}
           rtsEnabled={rtsEnabled}
           onRtsChange={setRtsEnabled}
-          macros={settings.macros}
-          onMacrosChange={(macros) => setSettings((s) => ({ ...s, macros }))}
-          onMacroSend={handleMacroSend}
         />
         <MainPanel
           showSend={showSend}
@@ -93,7 +75,8 @@ function App() {
           maxLines={settings.maxLines}
           logFontSize={settings.logFontSize}
           onFontSizeChange={(size) => setSettings((s) => ({ ...s, logFontSize: size }))}
-          addEntryRef={addEntryRef}
+          macros={settings.macros}
+          onMacrosChange={(macros) => setSettings((s) => ({ ...s, macros }))}
         />
       </div>
       <StatusBar

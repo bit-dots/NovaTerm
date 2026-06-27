@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { listen } from "@tauri-apps/api/event";
 import LogMonitor from "./LogMonitor";
 import SendController from "./SendController";
-import type { LogEntry } from "../types";
+import type { LogEntry, Macro } from "../types";
 
 interface MainPanelProps {
   showSend: boolean;
@@ -11,9 +11,8 @@ interface MainPanelProps {
   maxLines: number;
   logFontSize: number;
   onFontSizeChange: (size: number) => void;
-  addEntryRef?: React.MutableRefObject<
-    ((type: "rx" | "tx", data: number[], text: string) => void) | null
-  >;
+  macros: Macro[];
+  onMacrosChange: (macros: Macro[]) => void;
 }
 
 let nextId = 1;
@@ -25,7 +24,8 @@ export default function MainPanel({
   maxLines,
   logFontSize,
   onFontSizeChange,
-  addEntryRef,
+  macros,
+  onMacrosChange,
 }: MainPanelProps) {
   const [splitRatio, setSplitRatio] = useState(65);
   const [entries, setEntries] = useState<LogEntry[]>([]);
@@ -78,12 +78,6 @@ export default function MainPanel({
     };
   }, [addEntry]);
 
-  useEffect(() => {
-    if (addEntryRef) {
-      addEntryRef.current = addEntry;
-    }
-  });
-
   const onMouseDown = useCallback(() => {
     dragging.current = true;
     document.body.style.cursor = "row-resize";
@@ -133,7 +127,11 @@ export default function MainPanel({
           </div>
 
           <div className="flex flex-1">
-            <SendController onSend={(data, text) => addEntry("tx", data, text)} />
+            <SendController
+              onSend={(data, text) => addEntry("tx", data, text)}
+              macros={macros}
+              onMacrosChange={onMacrosChange}
+            />
           </div>
         </>
       )}
