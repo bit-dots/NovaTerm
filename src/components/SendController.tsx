@@ -290,10 +290,9 @@ export default function SendController({ onSend, macros, onMacrosChange }: SendC
         </div>
       )}
 
-      <div className="flex gap-2 p-2">
+      <div className="flex flex-1 gap-2 p-2">
         <textarea
           className="flex-1 resize-none rounded border border-border bg-panel px-2 py-1 font-mono text-base text-text-primary placeholder-text-muted outline-none focus:border-accent"
-          rows={3}
           placeholder={hexMode ? "00 01 FF ..." : t("send.placeholder")}
           value={inputText}
           onChange={hexMode ? handleHexInput : (e) => setInputText(e.target.value)}
