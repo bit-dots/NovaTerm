@@ -8,9 +8,8 @@
   },
   "sidebar": {
     "connection": "Connection",
-    "macros": "Macros",
-    "history": "Send History",
-    "advanced": "Advanced"
+    "parameters": "Parameters",
+    "signals": "Signals"
   },
   "serial": {
     "port": "Port",

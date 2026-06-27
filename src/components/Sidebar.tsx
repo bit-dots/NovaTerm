@@ -98,7 +98,9 @@ export default function Sidebar({ activeTab, config, onConfigChange }: SidebarPr
             ))
           )}
         </select>
+      </CollapsibleSection>
 
+      <CollapsibleSection title={t("sidebar.parameters")} defaultOpen={false}>
         <div className="px-2 pb-2">
           <label className="mb-1 block text-xs text-text-muted">{t("serial.baud_rate")}</label>
           <select
@@ -168,22 +170,25 @@ export default function Sidebar({ activeTab, config, onConfigChange }: SidebarPr
             ))}
           </select>
         </div>
+
+        <div className="px-2 pb-2">
+          <label className="mb-1 block text-xs text-text-muted">{t("serial.flow_control")}</label>
+          <select
+            className="w-full rounded border border-border bg-panel px-2 py-1.5 text-sm text-text-primary focus:border-accent focus:outline-none"
+            value={config.flow_control}
+            onChange={(e) =>
+              updateConfig({ flow_control: e.target.value as SerialConfig["flow_control"] })
+            }
+          >
+            <option value="none">None</option>
+            <option value="rts-cts">RTS/CTS</option>
+            <option value="xon-xoff">XON/XOFF</option>
+          </select>
+        </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title={t("sidebar.macros")} defaultOpen={false}>
-        <div className="px-2 py-3 text-sm text-text-muted">{t("macro.empty")}</div>
-      </CollapsibleSection>
-
-      <CollapsibleSection title={t("sidebar.history")} defaultOpen={false}>
-        <div className="px-2 py-3 text-sm text-text-muted">{t("send.history")}</div>
-      </CollapsibleSection>
-
-      <CollapsibleSection title={t("sidebar.advanced")} defaultOpen={false}>
+      <CollapsibleSection title={t("sidebar.signals")} defaultOpen={false}>
         <div className="space-y-2 px-2 py-1">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-text-secondary">{t("serial.flow_control")}</span>
-            <span className="text-sm text-text-muted">None</span>
-          </div>
           <div className="flex items-center justify-between">
             <span className="text-sm text-text-secondary">{t("serial.dtr")}</span>
             <span className="text-sm text-text-muted">—</span>

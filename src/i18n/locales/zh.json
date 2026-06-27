@@ -8,9 +8,8 @@
   },
   "sidebar": {
     "connection": "串口连接",
-    "macros": "快捷命令",
-    "history": "发送历史",
-    "advanced": "高级设置"
+    "parameters": "串口参数",
+    "signals": "信号控制"
   },
   "serial": {
     "port": "端口",
