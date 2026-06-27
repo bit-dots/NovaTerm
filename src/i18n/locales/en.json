@@ -65,14 +65,19 @@
     "title": "Settings",
     "appearance": "Appearance",
     "log": "Log",
+    "serial": "Serial",
     "language": "Language",
     "theme": "Theme",
     "light": "Light",
     "dark": "Dark",
+    "zh": "中文",
+    "en": "English",
     "log_settings": "Log Settings",
     "max_lines": "Max Lines",
     "max_lines_desc": "Automatically truncate old data when exceeded. Range: 1,000 ~ 100,000",
     "font_size": "Log Font Size",
-    "font_size_desc": "Adjust the font size of the log area. Shortcut: Ctrl+/-"
+    "font_size_desc": "Adjust the font size of the log area. Shortcut: Ctrl+/-",
+    "encoding": "Default Encoding",
+    "encoding_desc": "Character encoding used for serial data"
   }
 }

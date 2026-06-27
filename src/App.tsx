@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import ActivityBar, { type TabId } from "./components/ActivityBar";
 import Sidebar from "./components/Sidebar";
 import MainPanel from "./components/MainPanel";
@@ -22,6 +23,7 @@ function loadSettings(): AppSettings {
 }
 
 function App() {
+  const { i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState<TabId>("serial");
   const [showSettings, setShowSettings] = useState(false);
   const [showSend, setShowSend] = useState(false);
@@ -36,6 +38,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem("settings", JSON.stringify(settings));
   }, [settings]);
+
+  useEffect(() => {
+    i18n.changeLanguage(settings.language);
+  }, [settings.language, i18n]);
 
   useEffect(() => {
     document.documentElement.classList.toggle("light", settings.theme === "light");
