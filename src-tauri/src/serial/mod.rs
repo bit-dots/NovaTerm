@@ -29,6 +29,41 @@ pub struct PortChangeEvent {
     pub port_type: String,
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub struct SerialStatus {
+    pub connected: bool,
+    pub port_name: Option<String>,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Clone, Serialize)]
+pub struct SerialError {
+    pub code: String,
+    pub message: String,
+}
+
+impl SerialError {
+    pub fn new(code: &str, message: &str) -> Self {
+        Self { code: code.to_string(), message: message.to_string() }
+    }
+
+    pub fn port_not_connected() -> Self {
+        Self::new("PORT_NOT_CONNECTED", "串口未打开")
+    }
+
+    pub fn invalid_config(msg: &str) -> Self {
+        Self::new("INVALID_CONFIG", msg)
+    }
+
+    pub fn io_error(msg: &str) -> Self {
+        Self::new("IO_ERROR", msg)
+    }
+
+    pub fn internal(msg: &str) -> Self {
+        Self::new("INTERNAL", msg)
+    }
+}
+
 pub struct SerialState {
     pub port: Arc<Mutex<Option<Box<dyn serialport::SerialPort>>>>,
     pub port_name: Mutex<Option<String>>,
@@ -177,6 +212,11 @@ pub fn write_data(state: &SerialState, data: &[u8]) -> Result<(), String> {
     let mut port = state.port.lock().map_err(|e| e.to_string())?;
     let port = port.as_mut().ok_or("串口未打开")?;
     port.write_all(data).map_err(|e| e.to_string())
+}
+
+pub fn get_status(state: &SerialState) -> SerialStatus {
+    let name = state.port_name.lock().ok().and_then(|n| n.clone());
+    SerialStatus { connected: name.is_some(), port_name: name }
 }
 
 pub fn close(state: &SerialState) -> Result<(), String> {

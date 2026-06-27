@@ -19,6 +19,7 @@ pub fn run() {
             commands::list_serial_ports,
             commands::open_serial_port,
             commands::close_serial_port,
+            commands::get_serial_status,
             commands::read_serial_data,
             commands::write_serial_data,
             commands::set_dtr,
