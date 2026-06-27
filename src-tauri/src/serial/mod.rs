@@ -1,10 +1,33 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+use std::sync::Mutex;
+use std::time::Duration;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct PortInfo {
     pub name: String,
     pub description: String,
     pub port_type: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct SerialConfig {
+    pub port_name: String,
+    pub baud_rate: u32,
+    pub data_bits: u8,
+    pub stop_bits: u8,
+    pub parity: String,
+    pub flow_control: String,
+}
+
+pub struct SerialState {
+    pub port: Mutex<Option<Box<dyn serialport::SerialPort>>>,
+    pub port_name: Mutex<Option<String>>,
+}
+
+impl SerialState {
+    pub fn new() -> Self {
+        Self { port: Mutex::new(None), port_name: Mutex::new(None) }
+    }
 }
 
 pub fn list_ports() -> Result<Vec<PortInfo>, String> {
@@ -31,4 +54,53 @@ pub fn list_ports() -> Result<Vec<PortInfo>, String> {
         })
         .collect();
     Ok(infos)
+}
+
+pub fn open(config: &SerialConfig) -> Result<Box<dyn serialport::SerialPort>, String> {
+    let data_bits = match config.data_bits {
+        5 => serialport::DataBits::Five,
+        6 => serialport::DataBits::Six,
+        7 => serialport::DataBits::Seven,
+        8 => serialport::DataBits::Eight,
+        _ => return Err(format!("无效的数据位: {}", config.data_bits)),
+    };
+
+    let stop_bits = match config.stop_bits {
+        1 => serialport::StopBits::One,
+        2 => serialport::StopBits::Two,
+        _ => return Err(format!("无效的停止位: {}", config.stop_bits)),
+    };
+
+    let parity = match config.parity.to_lowercase().as_str() {
+        "none" => serialport::Parity::None,
+        "even" => serialport::Parity::Even,
+        "odd" => serialport::Parity::Odd,
+        _ => return Err(format!("无效的校验位: {}", config.parity)),
+    };
+
+    let flow_control = match config.flow_control.to_lowercase().as_str() {
+        "none" => serialport::FlowControl::None,
+        "rts-cts" => serialport::FlowControl::Hardware,
+        "xon-xoff" => serialport::FlowControl::Software,
+        _ => return Err(format!("无效的流控: {}", config.flow_control)),
+    };
+
+    let port = serialport::new(&config.port_name, config.baud_rate)
+        .data_bits(data_bits)
+        .stop_bits(stop_bits)
+        .parity(parity)
+        .flow_control(flow_control)
+        .timeout(Duration::from_millis(10))
+        .open()
+        .map_err(|e| e.to_string())?;
+
+    Ok(port)
+}
+
+pub fn close(state: &SerialState) -> Result<(), String> {
+    let mut port = state.port.lock().map_err(|e| e.to_string())?;
+    *port = None;
+    let mut name = state.port_name.lock().map_err(|e| e.to_string())?;
+    *name = None;
+    Ok(())
 }
