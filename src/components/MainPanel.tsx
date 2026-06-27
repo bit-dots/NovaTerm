@@ -6,6 +6,7 @@ import type { LogEntry, Macro } from "../types";
 
 interface MainPanelProps {
   showSend: boolean;
+  onToggleSend: () => void;
   onTxBytes: (n: number) => void;
   onRxBytes: (n: number) => void;
   maxLines: number;
@@ -19,6 +20,7 @@ let nextId = 1;
 
 export default function MainPanel({
   showSend,
+  onToggleSend,
   onTxBytes,
   onRxBytes,
   maxLines,
@@ -129,6 +131,7 @@ export default function MainPanel({
           <div className="flex flex-1">
             <SendController
               onSend={(data, text) => addEntry("tx", data, text)}
+              onClose={onToggleSend}
               macros={macros}
               onMacrosChange={onMacrosChange}
             />

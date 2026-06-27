@@ -70,6 +70,7 @@ function App() {
         />
         <MainPanel
           showSend={showSend}
+          onToggleSend={() => setShowSend((v) => !v)}
           onTxBytes={(n) => setTxCount((c) => c + n)}
           onRxBytes={(n) => setRxCount((c) => c + n)}
           maxLines={settings.maxLines}

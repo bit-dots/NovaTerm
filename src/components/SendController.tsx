@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
-import { Send, History, RotateCw, CornerDownLeft } from "lucide-react";
+import { Send, History, RotateCw, CornerDownLeft, X } from "lucide-react";
 import type { Macro } from "../types";
 import MacroManager from "./MacroManager";
 
@@ -15,11 +15,17 @@ interface HistoryItem {
 
 interface SendControllerProps {
   onSend: (data: number[], text: string) => void;
+  onClose: () => void;
   macros: Macro[];
   onMacrosChange: (macros: Macro[]) => void;
 }
 
-export default function SendController({ onSend, macros, onMacrosChange }: SendControllerProps) {
+export default function SendController({
+  onSend,
+  onClose,
+  macros,
+  onMacrosChange,
+}: SendControllerProps) {
   const { t } = useTranslation();
   const [inputText, setInputText] = useState("");
   const [hexMode, setHexMode] = useState(false);
@@ -247,6 +253,17 @@ export default function SendController({ onSend, macros, onMacrosChange }: SendC
           onClick={toggleCyclic}
         >
           <RotateCw size={15} />
+        </button>
+        <div
+          className="h-4 w-px bg-text-secondary/50"
+          style={{ marginLeft: 3, marginRight: 0.5 }}
+        />
+        <button
+          className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
+          onClick={onClose}
+          title={t("send.collapse")}
+        >
+          <X size={15} />
         </button>
       </div>
 
