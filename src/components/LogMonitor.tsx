@@ -13,6 +13,27 @@ export default function LogMonitor({ entries, onClear }: LogMonitorProps) {
   const [paused, setPaused] = useState(false);
   const [hexMode, setHexMode] = useState(false);
   const [showTimestamp, setShowTimestamp] = useState(true);
+  const [fontSize, setFontSize] = useState(16);
+  const MIN_FONT = 10;
+  const MAX_FONT = 28;
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      if (e.key === "=" || e.key === "+") {
+        e.preventDefault();
+        setFontSize((prev) => Math.min(prev + 1, MAX_FONT));
+      } else if (e.key === "-") {
+        e.preventDefault();
+        setFontSize((prev) => Math.max(prev - 1, MIN_FONT));
+      } else if (e.key === "0") {
+        e.preventDefault();
+        setFontSize(16);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const pausedRef = useRef(false);
@@ -119,7 +140,8 @@ export default function LogMonitor({ entries, onClear }: LogMonitorProps) {
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-auto p-3 font-mono text-base leading-relaxed"
+        className="flex-1 overflow-auto p-3 font-mono leading-relaxed"
+        style={{ fontSize }}
       >
         {entries.length === 0 ? (
           <span className="text-text-muted">{t("receive.waiting")}</span>
