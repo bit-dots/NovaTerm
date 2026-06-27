@@ -66,6 +66,9 @@
     "language": "Language",
     "theme": "Theme",
     "light": "Light",
-    "dark": "Dark"
+    "dark": "Dark",
+    "log_settings": "Log Settings",
+    "max_lines": "Max Lines",
+    "font_size": "Log Font Size"
   }
 }

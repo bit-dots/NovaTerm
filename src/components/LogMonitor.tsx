@@ -6,34 +6,38 @@ import type { LogEntry } from "../types";
 interface LogMonitorProps {
   entries: LogEntry[];
   onClear: () => void;
+  fontSize: number;
+  onFontSizeChange: (size: number) => void;
 }
 
-export default function LogMonitor({ entries, onClear }: LogMonitorProps) {
+export default function LogMonitor({
+  entries,
+  onClear,
+  fontSize,
+  onFontSizeChange,
+}: LogMonitorProps) {
   const { t } = useTranslation();
   const [paused, setPaused] = useState(false);
   const [hexMode, setHexMode] = useState(false);
   const [showTimestamp, setShowTimestamp] = useState(false);
-  const [fontSize, setFontSize] = useState(16);
-  const MIN_FONT = 10;
-  const MAX_FONT = 28;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!e.ctrlKey && !e.metaKey) return;
       if (e.key === "=" || e.key === "+") {
         e.preventDefault();
-        setFontSize((prev) => Math.min(prev + 1, MAX_FONT));
+        onFontSizeChange(Math.min(fontSize + 1, 28));
       } else if (e.key === "-") {
         e.preventDefault();
-        setFontSize((prev) => Math.max(prev - 1, MIN_FONT));
+        onFontSizeChange(Math.max(fontSize - 1, 10));
       } else if (e.key === "0") {
         e.preventDefault();
-        setFontSize(16);
+        onFontSizeChange(16);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [fontSize, onFontSizeChange]);
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const pausedRef = useRef(false);

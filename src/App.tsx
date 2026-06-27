@@ -1,11 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ActivityBar, { type TabId } from "./components/ActivityBar";
 import Sidebar from "./components/Sidebar";
 import MainPanel from "./components/MainPanel";
 import StatusBar from "./components/StatusBar";
-import type { SerialConfig } from "./types";
-import { DEFAULT_CONFIG } from "./types";
+import type { SerialConfig, AppSettings } from "./types";
+import { DEFAULT_CONFIG, DEFAULT_SETTINGS } from "./types";
 import "./App.css";
+
+function loadSettings(): AppSettings {
+  try {
+    const raw = localStorage.getItem("settings");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return { ...DEFAULT_SETTINGS, ...parsed };
+    }
+  } catch {
+    // ignore
+  }
+  return DEFAULT_SETTINGS;
+}
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabId>("serial");
@@ -16,6 +29,15 @@ function App() {
   const [rxCount, setRxCount] = useState(0);
   const [dtrEnabled, setDtrEnabled] = useState(false);
   const [rtsEnabled, setRtsEnabled] = useState(false);
+  const [settings, setSettings] = useState<AppSettings>(loadSettings);
+
+  useEffect(() => {
+    localStorage.setItem("settings", JSON.stringify(settings));
+  }, [settings]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("light", settings.theme === "light");
+  }, [settings.theme]);
 
   return (
     <div className="flex h-screen flex-col bg-editor">
@@ -32,11 +54,16 @@ function App() {
           onDtrChange={setDtrEnabled}
           rtsEnabled={rtsEnabled}
           onRtsChange={setRtsEnabled}
+          settings={settings}
+          onSettingsChange={setSettings}
         />
         <MainPanel
           showSend={showSend}
           onTxBytes={(n) => setTxCount((c) => c + n)}
           onRxBytes={(n) => setRxCount((c) => c + n)}
+          maxLines={settings.maxLines}
+          logFontSize={settings.logFontSize}
+          onFontSizeChange={(size) => setSettings((s) => ({ ...s, logFontSize: size }))}
         />
       </div>
       <StatusBar

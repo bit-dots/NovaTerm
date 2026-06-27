@@ -59,3 +59,15 @@ export const PARITY_OPTIONS = [
   { value: "even", label: "Even" },
   { value: "odd", label: "Odd" },
 ] as const;
+
+export interface AppSettings {
+  theme: "dark" | "light";
+  maxLines: number;
+  logFontSize: number;
+}
+
+export const DEFAULT_SETTINGS: AppSettings = {
+  theme: "dark",
+  maxLines: 10000,
+  logFontSize: 16,
+};

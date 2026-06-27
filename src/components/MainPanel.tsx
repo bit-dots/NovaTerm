@@ -8,11 +8,21 @@ interface MainPanelProps {
   showSend: boolean;
   onTxBytes: (n: number) => void;
   onRxBytes: (n: number) => void;
+  maxLines: number;
+  logFontSize: number;
+  onFontSizeChange: (size: number) => void;
 }
 
 let nextId = 1;
 
-export default function MainPanel({ showSend, onTxBytes, onRxBytes }: MainPanelProps) {
+export default function MainPanel({
+  showSend,
+  onTxBytes,
+  onRxBytes,
+  maxLines,
+  logFontSize,
+  onFontSizeChange,
+}: MainPanelProps) {
   const [splitRatio, setSplitRatio] = useState(65);
   const [entries, setEntries] = useState<LogEntry[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -44,7 +54,7 @@ export default function MainPanel({ showSend, onTxBytes, onRxBytes }: MainPanelP
     };
     setEntries((prev) => {
       const next = [...prev, entry];
-      return next.length > 10000 ? next.slice(-10000) : next;
+      return next.length > maxLines ? next.slice(-maxLines) : next;
     });
     if (type === "tx") {
       onTxBytesRef.current(data.length);
@@ -95,7 +105,12 @@ export default function MainPanel({ showSend, onTxBytes, onRxBytes }: MainPanelP
   return (
     <div ref={containerRef} className="flex flex-1 flex-col">
       <div style={{ height: showSend ? `${splitRatio}%` : "100%" }}>
-        <LogMonitor entries={entries} onClear={() => setEntries([])} />
+        <LogMonitor
+          entries={entries}
+          onClear={() => setEntries([])}
+          fontSize={logFontSize}
+          onFontSizeChange={onFontSizeChange}
+        />
       </div>
 
       {showSend && (
