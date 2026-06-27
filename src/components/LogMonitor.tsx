@@ -12,7 +12,7 @@ export default function LogMonitor({ entries, onClear }: LogMonitorProps) {
   const { t } = useTranslation();
   const [paused, setPaused] = useState(false);
   const [hexMode, setHexMode] = useState(false);
-  const [showTimestamp, setShowTimestamp] = useState(true);
+  const [showTimestamp, setShowTimestamp] = useState(false);
   const [fontSize, setFontSize] = useState(16);
   const MIN_FONT = 10;
   const MAX_FONT = 28;
