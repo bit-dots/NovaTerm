@@ -7,6 +7,7 @@
     "connected": "已连接"
   },
   "serial": {
+    "port": "端口",
     "connect": "连接串口",
     "disconnect": "断开连接",
     "baud_rate": "波特率",
