@@ -47,7 +47,8 @@
     "resume": "Resume",
     "export": "Export",
     "timestamp": "Timestamp",
-    "hex": "HEX"
+    "hex": "HEX",
+    "waiting": "Waiting for data..."
   },
   "macro": {
     "title": "Macros",

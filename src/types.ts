@@ -29,6 +29,14 @@ export interface PortChangeEvent {
   port_type: string;
 }
 
+export interface LogEntry {
+  id: number;
+  type: "rx" | "tx";
+  timestamp: string;
+  data: number[];
+  text: string;
+}
+
 export const DEFAULT_CONFIG: SerialConfig = {
   port_name: "",
   baud_rate: 115200,

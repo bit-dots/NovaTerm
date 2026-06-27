@@ -47,7 +47,8 @@
     "resume": "继续",
     "export": "导出",
     "timestamp": "时间戳",
-    "hex": "HEX"
+    "hex": "HEX",
+    "waiting": "等待接收数据..."
   },
   "macro": {
     "title": "快捷命令",

@@ -1,8 +1,19 @@
+import { useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { CircleStop, Trash2, Download, Clock, Binary } from "lucide-react";
+import type { LogEntry } from "../types";
 
-export default function LogMonitor() {
+interface LogMonitorProps {
+  entries: LogEntry[];
+}
+
+export default function LogMonitor({ entries }: LogMonitorProps) {
   const { t } = useTranslation();
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [entries]);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -46,8 +57,21 @@ export default function LogMonitor() {
         </button>
       </div>
 
-      <div className="flex-1 overflow-auto p-3 font-mono text-base leading-relaxed text-text-primary">
-        <span className="text-text-muted">等待接收数据...</span>
+      <div className="flex-1 overflow-auto p-3 font-mono text-base leading-relaxed">
+        {entries.length === 0 ? (
+          <span className="text-text-muted">{t("receive.waiting")}</span>
+        ) : (
+          entries.map((entry) => (
+            <div key={entry.id} className="hover:bg-panel-alt/50">
+              <span className="select-none text-text-muted">{entry.timestamp}</span>
+              <span className={entry.type === "tx" ? "text-green-400" : "text-text-primary"}>
+                {" "}
+                {entry.text}
+              </span>
+            </div>
+          ))
+        )}
+        <div ref={bottomRef} />
       </div>
     </div>
   );

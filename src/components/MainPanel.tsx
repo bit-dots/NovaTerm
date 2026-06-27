@@ -1,15 +1,43 @@
 import { useState, useCallback, useRef, useEffect } from "react";
+import { listen } from "@tauri-apps/api/event";
 import LogMonitor from "./LogMonitor";
 import SendController from "./SendController";
+import type { LogEntry } from "../types";
 
 interface MainPanelProps {
   showSend: boolean;
 }
 
+let nextId = 1;
+
 export default function MainPanel({ showSend }: MainPanelProps) {
   const [splitRatio, setSplitRatio] = useState(65);
+  const [entries, setEntries] = useState<LogEntry[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
+
+  useEffect(() => {
+    const unlisten = listen<{ data: number[] }>("serial:data-received", (event) => {
+      const bytes = event.payload.data;
+      const text = new TextDecoder().decode(new Uint8Array(bytes));
+      const now = new Date();
+      const timestamp =
+        now.toLocaleTimeString("en-US", { hour12: false }) +
+        "." +
+        String(now.getMilliseconds()).padStart(3, "0");
+      const entry: LogEntry = {
+        id: nextId++,
+        type: "rx",
+        timestamp,
+        data: bytes,
+        text,
+      };
+      setEntries((prev) => [...prev, entry]);
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, []);
 
   const onMouseDown = useCallback(() => {
     dragging.current = true;
@@ -42,7 +70,7 @@ export default function MainPanel({ showSend }: MainPanelProps) {
   return (
     <div ref={containerRef} className="flex flex-1 flex-col">
       <div style={{ height: showSend ? `${splitRatio}%` : "100%" }}>
-        <LogMonitor />
+        <LogMonitor entries={entries} />
       </div>
 
       {showSend && (
