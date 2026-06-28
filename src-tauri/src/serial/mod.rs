@@ -139,7 +139,8 @@ pub fn list_ports() -> Result<Vec<PortInfo>, SerialError> {
         SerialError::io_error(&e.to_string())
     })?;
     log::debug!("扫描完成，发现 {} 个串口", ports.len());
-    let infos = ports
+
+    let mut infos: Vec<PortInfo> = ports
         .into_iter()
         .map(|p| {
             let (port_type, description) = match p.port_type {
@@ -160,6 +161,31 @@ pub fn list_ports() -> Result<Vec<PortInfo>, SerialError> {
             PortInfo { name: p.port_name, description, port_type }
         })
         .collect();
+
+    // 仅 debug 构建：扫描 PTY 虚拟串口（socat 创建的 /dev/ttys* 设备）
+    #[cfg(debug_assertions)]
+    {
+        let existing_names: std::collections::HashSet<String> =
+            infos.iter().map(|p| p.name.clone()).collect();
+
+        if let Ok(entries) = std::fs::read_dir("/dev") {
+            for entry in entries.flatten() {
+                let name = entry.file_name().to_string_lossy().to_string();
+                if name.starts_with("ttys") {
+                    let full_path = format!("/dev/{}", name);
+                    if !existing_names.contains(&full_path) {
+                        infos.push(PortInfo {
+                            name: full_path,
+                            description: String::new(),
+                            port_type: "PTY".to_string(),
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    log::debug!("发现 {} 个串口", infos.len());
     Ok(infos)
 }
 
