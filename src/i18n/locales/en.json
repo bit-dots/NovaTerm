@@ -27,7 +27,9 @@
     "refresh": "Refresh",
     "no_ports": "No serial ports detected",
     "connect_first": "Connect to a serial port first",
-    "connect_failed": "Connection failed"
+    "connect_failed": "Connection failed",
+    "disconnect_failed": "Disconnect failed",
+    "reconnect_failed": "Reconnect failed"
   },
   "send": {
     "title": "Send",
@@ -40,7 +42,8 @@
     "loop": "Loop",
     "loop_interval": "Interval (ms)",
     "cyclic": "Cyclic",
-    "collapse": "Collapse"
+    "collapse": "Collapse",
+    "send_failed": "Send failed"
   },
   "receive": {
     "title": "Receive",

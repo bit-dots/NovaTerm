@@ -27,7 +27,9 @@
     "refresh": "刷新",
     "no_ports": "未检测到串口",
     "connect_first": "请先连接串口",
-    "connect_failed": "连接失败"
+    "connect_failed": "连接失败",
+    "disconnect_failed": "断开失败",
+    "reconnect_failed": "重连失败"
   },
   "send": {
     "title": "发送",
@@ -40,7 +42,8 @@
     "loop": "循环发送",
     "loop_interval": "间隔(ms)",
     "cyclic": "循环发送",
-    "collapse": "折叠"
+    "collapse": "折叠",
+    "send_failed": "发送失败"
   },
   "receive": {
     "title": "接收",

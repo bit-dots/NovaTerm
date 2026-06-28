@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useToast } from "./Toast";
 import type { TabId } from "./ActivityBar";
 import type { PortInfo, SerialConfig } from "../types";
 import { BAUD_RATES, DATA_BITS_OPTIONS, STOP_BITS_OPTIONS, PARITY_OPTIONS } from "../types";
@@ -31,6 +32,7 @@ export default function Sidebar({
   onRtsChange,
 }: SidebarProps) {
   const { t } = useTranslation();
+  const { showToast } = useToast();
   const [ports, setPorts] = useState<PortInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [connecting, setConnecting] = useState(false);
@@ -61,6 +63,7 @@ export default function Sidebar({
         onRtsChange(false);
       } catch (e) {
         console.error("Failed to disconnect:", e);
+        showToast(`${t("serial.disconnect_failed")}: ${e}`, "error");
       } finally {
         setConnecting(false);
       }
@@ -72,7 +75,7 @@ export default function Sidebar({
         onConnectChange(true);
       } catch (e) {
         console.error("Failed to connect:", e);
-        alert(`${t("serial.connect_failed")}: ${e}`);
+        showToast(`${t("serial.connect_failed")}: ${e}`, "error");
       } finally {
         setConnecting(false);
       }
@@ -106,6 +109,7 @@ export default function Sidebar({
         await invoke("open_serial_port", { config });
       } catch (e) {
         console.error("Reconnect failed:", e);
+        showToast(`${t("serial.reconnect_failed")}: ${e}`, "error");
       }
     };
     doReconnect();

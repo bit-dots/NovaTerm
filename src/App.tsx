@@ -7,6 +7,7 @@ import SettingsPage from "./components/SettingsPage";
 import StatusBar from "./components/StatusBar";
 import type { SerialConfig, AppSettings } from "./types";
 import { DEFAULT_CONFIG, DEFAULT_SETTINGS } from "./types";
+import { ToastProvider } from "./components/Toast";
 import "./App.css";
 
 function loadSettings(): AppSettings {
@@ -48,59 +49,61 @@ function App() {
   }, [settings.theme]);
 
   return (
-    <div className="flex h-screen flex-col bg-editor">
-      <div className="flex flex-1 flex-row overflow-hidden">
-        <ActivityBar
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          onOpenSettings={() => setShowSettings(true)}
-          onOpenCommandPalette={() => {}}
-        />
-        <Sidebar
-          key={activeTab}
-          activeTab={activeTab}
-          config={config}
-          onConfigChange={setConfig}
-          connected={connected}
-          onConnectChange={setConnected}
-          dtrEnabled={dtrEnabled}
-          onDtrChange={setDtrEnabled}
-          rtsEnabled={rtsEnabled}
-          onRtsChange={setRtsEnabled}
-        />
-        <MainPanel
+    <ToastProvider>
+      <div className="flex h-screen flex-col bg-editor">
+        <div className="flex flex-1 flex-row overflow-hidden">
+          <ActivityBar
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            onOpenSettings={() => setShowSettings(true)}
+            onOpenCommandPalette={() => {}}
+          />
+          <Sidebar
+            key={activeTab}
+            activeTab={activeTab}
+            config={config}
+            onConfigChange={setConfig}
+            connected={connected}
+            onConnectChange={setConnected}
+            dtrEnabled={dtrEnabled}
+            onDtrChange={setDtrEnabled}
+            rtsEnabled={rtsEnabled}
+            onRtsChange={setRtsEnabled}
+          />
+          <MainPanel
+            showSend={showSend}
+            onToggleSend={() => setShowSend((v) => !v)}
+            onTxBytes={(n) => setTxCount((c) => c + n)}
+            onRxBytes={(n) => setRxCount((c) => c + n)}
+            maxLines={settings.maxLines}
+            logFontSize={settings.logFontSize}
+            onFontSizeChange={(size) => setSettings((s) => ({ ...s, logFontSize: size }))}
+            macros={settings.macros}
+            onMacrosChange={(macros) => setSettings((s) => ({ ...s, macros }))}
+          />
+        </div>
+        <StatusBar
           showSend={showSend}
-          onToggleSend={() => setShowSend((v) => !v)}
-          onTxBytes={(n) => setTxCount((c) => c + n)}
-          onRxBytes={(n) => setRxCount((c) => c + n)}
-          maxLines={settings.maxLines}
-          logFontSize={settings.logFontSize}
-          onFontSizeChange={(size) => setSettings((s) => ({ ...s, logFontSize: size }))}
-          macros={settings.macros}
-          onMacrosChange={(macros) => setSettings((s) => ({ ...s, macros }))}
+          onToggleSend={() => setShowSend(!showSend)}
+          connected={connected}
+          portName={config.port_name}
+          baudRate={config.baud_rate}
+          txCount={txCount}
+          rxCount={rxCount}
+          flowControl={config.flow_control}
+          dtrEnabled={dtrEnabled}
+          rtsEnabled={rtsEnabled}
         />
-      </div>
-      <StatusBar
-        showSend={showSend}
-        onToggleSend={() => setShowSend(!showSend)}
-        connected={connected}
-        portName={config.port_name}
-        baudRate={config.baud_rate}
-        txCount={txCount}
-        rxCount={rxCount}
-        flowControl={config.flow_control}
-        dtrEnabled={dtrEnabled}
-        rtsEnabled={rtsEnabled}
-      />
 
-      {showSettings && (
-        <SettingsPage
-          settings={settings}
-          onChange={setSettings}
-          onClose={() => setShowSettings(false)}
-        />
-      )}
-    </div>
+        {showSettings && (
+          <SettingsPage
+            settings={settings}
+            onChange={setSettings}
+            onClose={() => setShowSettings(false)}
+          />
+        )}
+      </div>
+    </ToastProvider>
   );
 }
 

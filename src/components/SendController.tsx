@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { Send, History, RotateCw, CornerDownLeft, X, ChevronDown } from "lucide-react";
 import type { Macro } from "../types";
 import MacroManager from "./MacroManager";
+import { useToast } from "./Toast";
 
 type NewlineMode = "none" | "lf" | "crlf";
 const MAX_HISTORY = 20;
@@ -27,6 +28,7 @@ export default function SendController({
   onMacrosChange,
 }: SendControllerProps) {
   const { t } = useTranslation();
+  const { showToast } = useToast();
   const [inputText, setInputText] = useState("");
   const [hexMode, setHexMode] = useState(false);
   const [sending, setSending] = useState(false);
@@ -118,6 +120,7 @@ export default function SendController({
         });
       } catch (e) {
         console.error("Failed to send:", e);
+        showToast(`${t("send.send_failed")}: ${e}`, "error");
       } finally {
         setSending(false);
       }
