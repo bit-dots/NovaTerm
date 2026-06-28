@@ -1,8 +1,8 @@
 use crate::serial::{self, LogEvent, PortInfo, SerialConfig, SerialError, SerialStatus, SerialState};
 
 #[tauri::command]
-pub fn list_serial_ports() -> Result<Vec<PortInfo>, SerialError> {
-    serial::list_ports()
+pub fn list_serial_ports(show_pty: bool) -> Result<Vec<PortInfo>, SerialError> {
+    serial::list_ports(show_pty)
 }
 
 #[tauri::command]

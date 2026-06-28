@@ -69,6 +69,7 @@ function App() {
             onDtrChange={setDtrEnabled}
             rtsEnabled={rtsEnabled}
             onRtsChange={setRtsEnabled}
+            showPtyPorts={settings.showPtyPorts}
           />
           <MainPanel
             showSend={showSend}

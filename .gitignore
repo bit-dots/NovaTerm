@@ -52,3 +52,5 @@ logs/
 # ===== Local Docs =====
 PRD.md
 DEVELOPMENT_PLAN.md
+
+test/

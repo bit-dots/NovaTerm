@@ -1,9 +1,39 @@
 use serde::{Deserialize, Serialize};
-use std::io::Read;
+use std::io::{Read, Write};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tauri::Emitter;
+
+pub(crate) enum PortHandle {
+    Serial(Box<dyn serialport::SerialPort>),
+    Pty(std::fs::File),
+}
+
+impl Read for PortHandle {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        match self {
+            PortHandle::Serial(p) => p.read(buf),
+            PortHandle::Pty(f) => f.read(buf),
+        }
+    }
+}
+
+impl Write for PortHandle {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        match self {
+            PortHandle::Serial(p) => p.write(buf),
+            PortHandle::Pty(f) => f.write(buf),
+        }
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        match self {
+            PortHandle::Serial(p) => p.flush(),
+            PortHandle::Pty(f) => f.flush(),
+        }
+    }
+}
 
 #[derive(Debug, Clone, Serialize)]
 pub struct PortInfo {
@@ -101,7 +131,7 @@ impl SerialError {
 }
 
 pub struct SerialState {
-    pub port: Arc<Mutex<Option<Box<dyn serialport::SerialPort>>>>,
+    pub port: Arc<Mutex<Option<PortHandle>>>,
     pub port_name: Mutex<Option<String>>,
     pub rx: Mutex<Option<crossbeam_channel::Receiver<Vec<u8>>>>,
     pub read_handle: Mutex<Option<std::thread::JoinHandle<()>>>,
@@ -132,7 +162,7 @@ pub fn get_internal_logs(state: &SerialState) -> Vec<LogEvent> {
         .unwrap_or_default()
 }
 
-pub fn list_ports() -> Result<Vec<PortInfo>, SerialError> {
+pub fn list_ports(show_pty: bool) -> Result<Vec<PortInfo>, SerialError> {
     log::debug!("正在扫描系统串口列表...");
     let ports = serialport::available_ports().map_err(|e| {
         log::error!("串口扫描失败: {}", e);
@@ -162,9 +192,7 @@ pub fn list_ports() -> Result<Vec<PortInfo>, SerialError> {
         })
         .collect();
 
-    // 仅 debug 构建：扫描 PTY 虚拟串口（socat 创建的 /dev/ttys* 设备）
-    #[cfg(debug_assertions)]
-    {
+    if show_pty {
         let existing_names: std::collections::HashSet<String> =
             infos.iter().map(|p| p.name.clone()).collect();
 
@@ -199,61 +227,76 @@ pub fn open(
         config.stop_bits, config.parity, config.flow_control);
     emit_log(app_handle, Some(&state.log_buffer), "info", &format!("正在打开串口 {}...", config.port_name));
 
-    let data_bits = match config.data_bits {
-        5 => serialport::DataBits::Five,
-        6 => serialport::DataBits::Six,
-        7 => serialport::DataBits::Seven,
-        8 => serialport::DataBits::Eight,
-        _ => {
-            let msg = format!("无效的数据位: {}", config.data_bits);
-            log::error!("{}", msg);
-            return Err(SerialError::invalid_config(&msg));
-        }
-    };
+    let is_pty = config.port_name.contains("/dev/ttys");
 
-    let stop_bits = match config.stop_bits {
-        1 => serialport::StopBits::One,
-        2 => serialport::StopBits::Two,
-        _ => {
-            let msg = format!("无效的停止位: {}", config.stop_bits);
-            log::error!("{}", msg);
-            return Err(SerialError::invalid_config(&msg));
-        }
-    };
+    let port: PortHandle = if is_pty {
+        let file = std::fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .open(&config.port_name)
+            .map_err(|e| {
+                log::error!("打开 PTY {} 失败: {}", config.port_name, e);
+                SerialError::io_error(&e.to_string())
+            })?;
+        PortHandle::Pty(file)
+    } else {
+        let data_bits = match config.data_bits {
+            5 => serialport::DataBits::Five,
+            6 => serialport::DataBits::Six,
+            7 => serialport::DataBits::Seven,
+            8 => serialport::DataBits::Eight,
+            _ => {
+                let msg = format!("无效的数据位: {}", config.data_bits);
+                log::error!("{}", msg);
+                return Err(SerialError::invalid_config(&msg));
+            }
+        };
 
-    let parity = match config.parity.to_lowercase().as_str() {
-        "none" => serialport::Parity::None,
-        "even" => serialport::Parity::Even,
-        "odd" => serialport::Parity::Odd,
-        _ => {
-            let msg = format!("无效的校验位: {}", config.parity);
-            log::error!("{}", msg);
-            return Err(SerialError::invalid_config(&msg));
-        }
-    };
+        let stop_bits = match config.stop_bits {
+            1 => serialport::StopBits::One,
+            2 => serialport::StopBits::Two,
+            _ => {
+                let msg = format!("无效的停止位: {}", config.stop_bits);
+                log::error!("{}", msg);
+                return Err(SerialError::invalid_config(&msg));
+            }
+        };
 
-    let flow_control = match config.flow_control.to_lowercase().as_str() {
-        "none" => serialport::FlowControl::None,
-        "rts-cts" => serialport::FlowControl::Hardware,
-        "xon-xoff" => serialport::FlowControl::Software,
-        _ => {
-            let msg = format!("无效的流控: {}", config.flow_control);
-            log::error!("{}", msg);
-            return Err(SerialError::invalid_config(&msg));
-        }
-    };
+        let parity = match config.parity.to_lowercase().as_str() {
+            "none" => serialport::Parity::None,
+            "even" => serialport::Parity::Even,
+            "odd" => serialport::Parity::Odd,
+            _ => {
+                let msg = format!("无效的校验位: {}", config.parity);
+                log::error!("{}", msg);
+                return Err(SerialError::invalid_config(&msg));
+            }
+        };
 
-    let port = serialport::new(&config.port_name, config.baud_rate)
-        .data_bits(data_bits)
-        .stop_bits(stop_bits)
-        .parity(parity)
-        .flow_control(flow_control)
-        .timeout(Duration::from_millis(10))
-        .open()
-        .map_err(|e| {
-            log::error!("打开串口 {} 失败: {}", config.port_name, e);
-            SerialError::io_error(&e.to_string())
-        })?;
+        let flow_control = match config.flow_control.to_lowercase().as_str() {
+            "none" => serialport::FlowControl::None,
+            "rts-cts" => serialport::FlowControl::Hardware,
+            "xon-xoff" => serialport::FlowControl::Software,
+            _ => {
+                let msg = format!("无效的流控: {}", config.flow_control);
+                log::error!("{}", msg);
+                return Err(SerialError::invalid_config(&msg));
+            }
+        };
+
+        let sp = serialport::new(&config.port_name, config.baud_rate)
+            .data_bits(data_bits)
+            .stop_bits(stop_bits)
+            .parity(parity)
+            .flow_control(flow_control)
+            .timeout(Duration::from_millis(10))
+            .open()
+            .map_err(|e| {
+                log::error!("打开串口 {} 失败: {}", config.port_name, e);
+                SerialError::io_error(&e.to_string())
+            })?;
+        PortHandle::Serial(sp)
+    };
 
     let (tx, rx) = crossbeam_channel::bounded::<Vec<u8>>(256);
     let port_arc = Arc::clone(&state.port);
@@ -409,28 +452,40 @@ pub fn set_dtr(state: &SerialState, enabled: bool) -> Result<(), SerialError> {
     log::debug!("设置 DTR = {}", enabled);
     let mut port = state.port.lock().map_err(|e| SerialError::io_error(&e.to_string()))?;
     let port = port.as_mut().ok_or(SerialError::port_not_connected())?;
-    port.write_data_terminal_ready(enabled)
-        .map_err(|e| SerialError::io_error(&e.to_string()))
+    match port {
+        PortHandle::Serial(p) => p.write_data_terminal_ready(enabled)
+            .map_err(|e| SerialError::io_error(&e.to_string())),
+        PortHandle::Pty(_) => Ok(()),
+    }
 }
 
 pub fn set_rts(state: &SerialState, enabled: bool) -> Result<(), SerialError> {
     log::debug!("设置 RTS = {}", enabled);
     let mut port = state.port.lock().map_err(|e| SerialError::io_error(&e.to_string()))?;
     let port = port.as_mut().ok_or(SerialError::port_not_connected())?;
-    port.write_request_to_send(enabled)
-        .map_err(|e| SerialError::io_error(&e.to_string()))
+    match port {
+        PortHandle::Serial(p) => p.write_request_to_send(enabled)
+            .map_err(|e| SerialError::io_error(&e.to_string())),
+        PortHandle::Pty(_) => Ok(()),
+    }
 }
 
 pub fn read_cts(state: &SerialState) -> Result<bool, SerialError> {
     let mut port = state.port.lock().map_err(|e| SerialError::io_error(&e.to_string()))?;
     let port = port.as_mut().ok_or(SerialError::port_not_connected())?;
-    port.read_clear_to_send().map_err(|e| SerialError::io_error(&e.to_string()))
+    match port {
+        PortHandle::Serial(p) => p.read_clear_to_send().map_err(|e| SerialError::io_error(&e.to_string())),
+        PortHandle::Pty(_) => Ok(false),
+    }
 }
 
 pub fn read_dsr(state: &SerialState) -> Result<bool, SerialError> {
     let mut port = state.port.lock().map_err(|e| SerialError::io_error(&e.to_string()))?;
     let port = port.as_mut().ok_or(SerialError::port_not_connected())?;
-    port.read_data_set_ready().map_err(|e| SerialError::io_error(&e.to_string()))
+    match port {
+        PortHandle::Serial(p) => p.read_data_set_ready().map_err(|e| SerialError::io_error(&e.to_string())),
+        PortHandle::Pty(_) => Ok(false),
+    }
 }
 
 pub fn start_port_monitor(state: &SerialState, app_handle: tauri::AppHandle) {

@@ -91,6 +91,8 @@
     "font_size": "Log Font Size",
     "font_size_desc": "Adjust the font size of the log area. Shortcut: Ctrl+/-",
     "encoding": "Default Encoding",
-    "encoding_desc": "Character encoding used for serial data"
+    "encoding_desc": "Character encoding used for serial data",
+    "show_pty_ports": "Show Virtual Ports (PTY)",
+    "show_pty_ports_desc": "Show virtual serial ports created by tools like socat in the port list"
   }
 }

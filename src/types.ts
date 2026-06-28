@@ -73,6 +73,7 @@ export interface AppSettings {
   logFontSize: number;
   defaultEncoding: "utf-8" | "gb2312" | "latin-1";
   macros: Macro[];
+  showPtyPorts: boolean;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -82,4 +83,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   logFontSize: 12,
   defaultEncoding: "utf-8",
   macros: [],
+  showPtyPorts: false,
 };

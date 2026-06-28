@@ -208,31 +208,59 @@ export default function SettingsPage({ settings, onChange, onClose }: SettingsPa
             )}
 
             {activeCategory === "serial" && (
-              <section>
-                <h2 className="mb-4 text-base font-semibold text-text-primary">
-                  {t("settings.encoding")}
-                </h2>
-                <div className="flex flex-col gap-3">
-                  {ENCODING_OPTIONS.map((opt) => (
-                    <label
-                      key={opt.value}
-                      className="flex items-center gap-3 text-sm text-text-primary"
+              <div className="flex flex-col gap-8">
+                <section>
+                  <h2 className="mb-4 text-base font-semibold text-text-primary">
+                    {t("settings.encoding")}
+                  </h2>
+                  <div className="flex flex-col gap-3">
+                    {ENCODING_OPTIONS.map((opt) => (
+                      <label
+                        key={opt.value}
+                        className="flex items-center gap-3 text-sm text-text-primary"
+                      >
+                        <input
+                          type="radio"
+                          name="encoding"
+                          checked={settings.defaultEncoding === opt.value}
+                          onChange={() => update({ defaultEncoding: opt.value })}
+                          className="accent-accent"
+                        />
+                        <div>
+                          <span>{opt.label}</span>
+                        </div>
+                      </label>
+                    ))}
+                    <p className="mt-1 text-xs text-text-muted">{t("settings.encoding_desc")}</p>
+                  </div>
+                </section>
+
+                <section>
+                  <h2 className="mb-4 text-base font-semibold text-text-primary">
+                    {t("settings.serial")}
+                  </h2>
+                  <label className="flex items-center justify-between text-sm">
+                    <div>
+                      <span className="text-text-primary">{t("settings.show_pty_ports")}</span>
+                      <p className="mt-0.5 text-xs text-text-muted">
+                        {t("settings.show_pty_ports_desc")}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => update({ showPtyPorts: !settings.showPtyPorts })}
+                      className={`h-5 w-9 flex-shrink-0 rounded-full transition-colors ${
+                        settings.showPtyPorts ? "bg-accent" : "bg-border"
+                      }`}
                     >
-                      <input
-                        type="radio"
-                        name="encoding"
-                        checked={settings.defaultEncoding === opt.value}
-                        onChange={() => update({ defaultEncoding: opt.value })}
-                        className="accent-accent"
+                      <div
+                        className={`mt-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
+                          settings.showPtyPorts ? "ml-4" : "ml-0.5"
+                        }`}
                       />
-                      <div>
-                        <span>{opt.label}</span>
-                      </div>
-                    </label>
-                  ))}
-                  <p className="mt-1 text-xs text-text-muted">{t("settings.encoding_desc")}</p>
-                </div>
-              </section>
+                    </button>
+                  </label>
+                </section>
+              </div>
             )}
           </div>
         </div>

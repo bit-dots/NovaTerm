@@ -18,6 +18,7 @@ interface SidebarProps {
   onDtrChange: (enabled: boolean) => void;
   rtsEnabled: boolean;
   onRtsChange: (enabled: boolean) => void;
+  showPtyPorts: boolean;
 }
 
 export default function Sidebar({
@@ -30,6 +31,7 @@ export default function Sidebar({
   onDtrChange,
   rtsEnabled,
   onRtsChange,
+  showPtyPorts,
 }: SidebarProps) {
   const { t } = useTranslation();
   const { showToast } = useToast();
@@ -40,7 +42,7 @@ export default function Sidebar({
   const loadPorts = async () => {
     setLoading(true);
     try {
-      const list = await invoke<PortInfo[]>("list_serial_ports");
+      const list = await invoke<PortInfo[]>("list_serial_ports", { showPty: showPtyPorts });
       setPorts(list);
       if (list.length > 0 && !config.port_name) {
         onConfigChange({ ...config, port_name: list[0].name });
@@ -90,7 +92,7 @@ export default function Sidebar({
       return () => clearTimeout(id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [activeTab, showPtyPorts]);
 
   const isFirstRender = useRef(true);
 

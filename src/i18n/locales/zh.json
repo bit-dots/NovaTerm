@@ -91,6 +91,8 @@
     "font_size": "日志字体大小",
     "font_size_desc": "调节日志区域的字体大小，快捷键 Ctrl+/-",
     "encoding": "默认编码",
-    "encoding_desc": "串口数据收发使用的字符编码"
+    "encoding_desc": "串口数据收发使用的字符编码",
+    "show_pty_ports": "显示虚拟串口 (PTY)",
+    "show_pty_ports_desc": "在端口列表中显示 socat 等工具创建的虚拟串口设备"
   }
 }
