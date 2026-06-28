@@ -51,6 +51,18 @@ export default function LogMonitor({
     }
   }, [entries, paused]);
 
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(() => {
+      if (!pausedRef.current && el) {
+        el.scrollTop = el.scrollHeight;
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
