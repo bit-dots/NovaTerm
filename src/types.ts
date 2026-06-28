@@ -79,7 +79,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   theme: "dark",
   language: "zh",
   maxLines: 10000,
-  logFontSize: 16,
+  logFontSize: 12,
   defaultEncoding: "utf-8",
   macros: [],
 };
