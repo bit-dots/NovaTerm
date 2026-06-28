@@ -201,9 +201,9 @@ export default function SendController({
               : "text-text-secondary hover:bg-panel-alt hover:text-text-primary"
           }`}
           onClick={() => setHexMode(!hexMode)}
-          title="HEX"
+          title={t("send.hex")}
         >
-          HEX
+          {t("send.hex")}
         </button>
         <button
           className={`flex-shrink-0 inline-flex items-center justify-center h-6 rounded px-1.5 text-xs font-medium leading-none transition-colors ${
@@ -232,7 +232,7 @@ export default function SendController({
                   className="cursor-pointer truncate px-2 py-1 text-sm text-text-primary hover:bg-panel-alt"
                   onClick={() => selectHistory(item)}
                 >
-                  {item.hexMode ? "HEX: " : ""}
+                  {item.hexMode ? `${t("send.hex_prefix")}` : ""}
                   {item.text}
                 </div>
               ))}
@@ -263,7 +263,7 @@ export default function SendController({
       <div className="flex flex-1 flex-col">
         <textarea
           className="flex-1 resize-none border-0 bg-panel px-2 py-2 font-mono text-base text-text-primary placeholder-text-muted outline-none"
-          placeholder={hexMode ? "00 01 FF ..." : t("send.placeholder")}
+          placeholder={hexMode ? t("send.hex_placeholder") : t("send.placeholder")}
           value={inputText}
           onChange={hexMode ? handleHexInput : (e) => setInputText(e.target.value)}
           onKeyDown={handleKeyDown}

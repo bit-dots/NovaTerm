@@ -2,6 +2,12 @@
   "app": {
     "title": "NovaTerm"
   },
+  "activityBar": {
+    "serial": "Serial",
+    "manage": "Manage",
+    "settings": "Settings",
+    "commandPalette": "Command Palette"
+  },
   "status": {
     "disconnected": "Disconnected",
     "connected": "Connected",
@@ -43,7 +49,9 @@
     "loop_interval": "Interval (ms)",
     "cyclic": "Cyclic",
     "collapse": "Collapse",
-    "send_failed": "Send failed"
+    "send_failed": "Send failed",
+    "hex_placeholder": "00 01 FF ...",
+    "hex_prefix": "HEX: "
   },
   "receive": {
     "title": "Receive",

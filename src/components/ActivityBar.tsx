@@ -1,18 +1,19 @@
 import { useState, useRef, useEffect } from "react";
 import { Cable, Terminal, Settings } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export type TabId = "serial" | "ssh";
 
 interface Tab {
   id: TabId;
   icon: typeof Cable;
-  label: string;
+  labelKey: string;
   disabled: boolean;
 }
 
 const tabs: Tab[] = [
-  { id: "serial", icon: Cable, label: "串口", disabled: false },
-  { id: "ssh", icon: Terminal, label: "SSH", disabled: true },
+  { id: "serial", icon: Cable, labelKey: "activityBar.serial", disabled: false },
+  { id: "ssh", icon: Terminal, labelKey: "SSH", disabled: true },
 ];
 
 interface ActivityBarProps {
@@ -28,6 +29,7 @@ export default function ActivityBar({
   onOpenSettings,
   onOpenCommandPalette,
 }: ActivityBarProps) {
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -56,7 +58,7 @@ export default function ActivityBar({
                 ? "border-activity-active text-activity-active"
                 : "border-transparent text-text-secondary hover:text-text-primary"
             } ${tab.disabled ? "cursor-not-allowed opacity-40" : "cursor-pointer"}`}
-            title={tab.label}
+            title={t(tab.labelKey)}
           >
             <tab.icon size={22} />
           </button>
@@ -71,7 +73,7 @@ export default function ActivityBar({
               ? "border-activity-active text-activity-active"
               : "border-transparent text-text-secondary hover:text-text-primary"
           }`}
-          title="管理"
+          title={t("activityBar.manage")}
         >
           <Settings size={22} />
         </button>
@@ -89,7 +91,7 @@ export default function ActivityBar({
               }}
             >
               <Settings size={14} />
-              设置
+              {t("activityBar.settings")}
             </button>
             <button
               className="flex w-full items-center gap-2 px-4 py-1.5 text-left text-sm text-text-primary hover:bg-accent hover:text-editor"
@@ -99,7 +101,7 @@ export default function ActivityBar({
               }}
             >
               <span className="text-xs">⌘</span>
-              命令面板
+              {t("activityBar.commandPalette")}
             </button>
           </div>
         )}
