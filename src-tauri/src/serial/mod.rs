@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::io::{Read, Write};
+use std::os::unix::io::AsRawFd;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -230,14 +231,25 @@ pub fn open(
     let is_pty = config.port_name.contains("/dev/ttys");
 
     let port: PortHandle = if is_pty {
+        use std::os::unix::fs::OpenOptionsExt;
         let file = std::fs::OpenOptions::new()
             .read(true)
             .write(true)
+            .custom_flags(libc::O_NONBLOCK)
             .open(&config.port_name)
             .map_err(|e| {
                 log::error!("打开 PTY {} 失败: {}", config.port_name, e);
                 SerialError::io_error(&e.to_string())
             })?;
+        // 设置读超时，避免读线程在 PTY 上无限阻塞
+        unsafe {
+            let fd = file.as_raw_fd();
+            let mut t: libc::termios = std::mem::zeroed();
+            libc::tcgetattr(fd, &mut t);
+            t.c_cc[libc::VMIN] = 0;
+            t.c_cc[libc::VTIME] = 1; // 100ms 超时
+            libc::tcsetattr(fd, libc::TCSANOW, &t);
+        }
         PortHandle::Pty(file)
     } else {
         let data_bits = match config.data_bits {
