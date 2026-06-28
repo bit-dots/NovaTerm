@@ -35,7 +35,9 @@
     "connect_first": "Connect to a serial port first",
     "connect_failed": "Connection failed",
     "disconnect_failed": "Disconnect failed",
-    "reconnect_failed": "Reconnect failed"
+    "reconnect_failed": "Reconnect failed",
+    "reconnecting": "Reconnecting...",
+    "reconnected": "Reconnected"
   },
   "send": {
     "title": "Send",

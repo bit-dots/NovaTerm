@@ -105,10 +105,12 @@ export default function Sidebar({
 
     const doReconnect = async () => {
       try {
+        showToast(t("serial.reconnecting"), "info");
         await invoke("close_serial_port");
         onDtrChange(false);
         onRtsChange(false);
         await invoke("open_serial_port", { config });
+        showToast(t("serial.reconnected"), "success");
       } catch (e) {
         console.error("Reconnect failed:", e);
         showToast(`${t("serial.reconnect_failed")}: ${e}`, "error");

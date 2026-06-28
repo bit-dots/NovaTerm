@@ -35,7 +35,9 @@
     "connect_first": "请先连接串口",
     "connect_failed": "连接失败",
     "disconnect_failed": "断开失败",
-    "reconnect_failed": "重连失败"
+    "reconnect_failed": "重连失败",
+    "reconnecting": "正在重连...",
+    "reconnected": "重连成功"
   },
   "send": {
     "title": "发送",
