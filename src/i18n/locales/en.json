@@ -58,8 +58,8 @@
   "receive": {
     "title": "Receive",
     "clear": "Clear",
-    "pause": "Pause",
-    "resume": "Resume",
+    "freeze_scroll": "Freeze Scroll",
+    "unfreeze_scroll": "Unfreeze Scroll",
     "export": "Export",
     "timestamp": "Timestamp",
     "hex": "HEX",

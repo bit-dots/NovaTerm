@@ -58,8 +58,8 @@
   "receive": {
     "title": "接收",
     "clear": "清空",
-    "pause": "暂停",
-    "resume": "继续",
+    "freeze_scroll": "冻结滚动",
+    "unfreeze_scroll": "取消冻结滚动",
     "export": "导出",
     "timestamp": "时间戳",
     "hex": "HEX",

@@ -1,6 +1,6 @@
 import { useRef, useEffect, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CircleStop, Play, Trash2, Download, Clock, Binary } from "lucide-react";
+import { Lock, Trash2, Download, Clock, Binary } from "lucide-react";
 import type { LogEntry } from "../types";
 
 interface LogMonitorProps {
@@ -17,7 +17,7 @@ export default function LogMonitor({
   onFontSizeChange,
 }: LogMonitorProps) {
   const { t } = useTranslation();
-  const [paused, setPaused] = useState(false);
+  const [autoScroll, setAutoScroll] = useState(true);
   const [hexMode, setHexMode] = useState(false);
   const [showTimestamp, setShowTimestamp] = useState(false);
 
@@ -39,23 +39,23 @@ export default function LogMonitor({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [fontSize, onFontSizeChange]);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const pausedRef = useRef(false);
+  const autoScrollRef = useRef(true);
 
   useEffect(() => {
-    pausedRef.current = paused;
-  }, [paused]);
+    autoScrollRef.current = autoScroll;
+  }, [autoScroll]);
 
   useEffect(() => {
-    if (!paused && scrollRef.current) {
+    if (autoScroll && scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [entries, paused]);
+  }, [entries, autoScroll]);
 
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
     const observer = new ResizeObserver(() => {
-      if (!pausedRef.current && el) {
+      if (autoScrollRef.current && el) {
         el.scrollTop = el.scrollHeight;
       }
     });
@@ -67,16 +67,16 @@ export default function LogMonitor({
     const el = scrollRef.current;
     if (!el) return;
     const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 30;
-    if (atBottom && pausedRef.current) {
-      setPaused(false);
-    } else if (!atBottom && !pausedRef.current) {
-      setPaused(true);
+    if (atBottom && !autoScrollRef.current) {
+      setAutoScroll(true);
+    } else if (!atBottom && autoScrollRef.current) {
+      setAutoScroll(false);
     }
   }, []);
 
-  const handleTogglePause = useCallback(() => {
-    setPaused((prev) => {
-      if (prev && scrollRef.current) {
+  const handleToggleAutoScroll = useCallback(() => {
+    setAutoScroll((prev) => {
+      if (!prev && scrollRef.current) {
         scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
       }
       return !prev;
@@ -130,11 +130,15 @@ export default function LogMonitor({
           <Binary size={15} />
         </button>
         <button
-          className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
-          title={paused ? t("receive.resume") : t("receive.pause")}
-          onClick={handleTogglePause}
+          className={`flex-shrink-0 rounded p-0.5 transition-colors ${
+            autoScroll
+              ? "text-text-secondary hover:bg-panel-alt hover:text-text-primary"
+              : "text-accent"
+          }`}
+          title={autoScroll ? t("receive.freeze_scroll") : t("receive.unfreeze_scroll")}
+          onClick={handleToggleAutoScroll}
         >
-          {paused ? <Play size={15} /> : <CircleStop size={15} />}
+          <Lock size={15} />
         </button>
         <button
           className="flex-shrink-0 rounded p-0.5 text-text-secondary hover:bg-panel-alt hover:text-text-primary"
