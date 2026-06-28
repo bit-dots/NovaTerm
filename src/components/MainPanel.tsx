@@ -43,6 +43,7 @@ export default function MainPanel({
     onRxBytesRef.current = onRxBytes;
   }, [onRxBytes]);
 
+  // TODO: 系统日志面板 — 独立于串口数据的输出面板，用于显示连接状态、错误等系统级日志
   const addEntry = useCallback((type: "rx" | "tx", data: number[], text: string) => {
     const now = new Date();
     const timestamp =
