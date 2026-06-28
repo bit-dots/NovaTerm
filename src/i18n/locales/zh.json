@@ -6,7 +6,11 @@
     "serial": "串口",
     "manage": "管理",
     "settings": "设置",
-    "commandPalette": "命令面板"
+    "commandPalette": "命令面板",
+    "checkUpdate": "检查更新",
+    "new_version": "发现新版本",
+    "up_to_date": "已是最新版本",
+    "update_error": "检查更新失败"
   },
   "status": {
     "disconnected": "未连接",

@@ -6,7 +6,11 @@
     "serial": "Serial",
     "manage": "Manage",
     "settings": "Settings",
-    "commandPalette": "Command Palette"
+    "commandPalette": "Command Palette",
+    "checkUpdate": "Check for Updates",
+    "new_version": "New version available",
+    "up_to_date": "Up to date",
+    "update_error": "Update check failed"
   },
   "status": {
     "disconnected": "Disconnected",

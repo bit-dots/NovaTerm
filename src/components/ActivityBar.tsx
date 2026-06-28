@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { Cable, Terminal, Settings } from "lucide-react";
+import { Cable, Terminal, Settings, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { check } from "@tauri-apps/plugin-updater";
+import { useToast } from "./Toast";
 
 export type TabId = "serial" | "ssh";
 
@@ -30,8 +32,27 @@ export default function ActivityBar({
   onOpenCommandPalette,
 }: ActivityBarProps) {
   const { t } = useTranslation();
+  const { showToast } = useToast();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [checking, setChecking] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const handleCheckUpdate = async () => {
+    setMenuOpen(false);
+    setChecking(true);
+    try {
+      const update = await check();
+      if (update) {
+        showToast(`${t("activityBar.new_version")}: ${update.version}`, "info");
+      } else {
+        showToast(t("activityBar.up_to_date"), "success");
+      }
+    } catch (e) {
+      showToast(`${t("activityBar.update_error")}: ${e}`, "error");
+    } finally {
+      setChecking(false);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -102,6 +123,15 @@ export default function ActivityBar({
             >
               <span className="text-xs">⌘</span>
               {t("activityBar.commandPalette")}
+            </button>
+            <div className="my-1 border-t border-border" />
+            <button
+              className="flex w-full items-center gap-2 px-4 py-1.5 text-left text-sm text-text-primary hover:bg-accent hover:text-editor disabled:opacity-50"
+              onClick={handleCheckUpdate}
+              disabled={checking}
+            >
+              <RefreshCw size={14} className={checking ? "animate-spin" : ""} />
+              {t("activityBar.checkUpdate")}
             </button>
           </div>
         )}

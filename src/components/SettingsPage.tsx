@@ -234,7 +234,6 @@ export default function SettingsPage({ settings, onChange, onClose }: SettingsPa
                     <p className="mt-1 text-xs text-text-muted">{t("settings.encoding_desc")}</p>
                   </div>
                 </section>
-
                 <section>
                   <h2 className="mb-4 text-base font-semibold text-text-primary">
                     {t("settings.serial")}
