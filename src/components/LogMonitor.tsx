@@ -38,7 +38,6 @@ export default function LogMonitor({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [fontSize, onFontSizeChange]);
-  const bottomRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const pausedRef = useRef(false);
 
@@ -47,8 +46,8 @@ export default function LogMonitor({
   }, [paused]);
 
   useEffect(() => {
-    if (!paused) {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!paused && scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [entries, paused]);
 
@@ -65,8 +64,8 @@ export default function LogMonitor({
 
   const handleTogglePause = useCallback(() => {
     setPaused((prev) => {
-      if (prev) {
-        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      if (prev && scrollRef.current) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
       }
       return !prev;
     });
@@ -87,7 +86,7 @@ export default function LogMonitor({
   }, [entries]);
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <div
         className="flex items-center gap-2.5 border-b border-border pl-2 py-1"
         style={{ paddingRight: 10 }}
@@ -144,7 +143,7 @@ export default function LogMonitor({
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-auto p-3 font-mono leading-relaxed"
+        className="min-h-0 flex-1 overflow-auto p-3 font-mono leading-relaxed"
         style={{ fontSize }}
       >
         {entries.length === 0 ? (
@@ -174,7 +173,6 @@ export default function LogMonitor({
             );
           })
         )}
-        <div ref={bottomRef} />
       </div>
     </div>
   );

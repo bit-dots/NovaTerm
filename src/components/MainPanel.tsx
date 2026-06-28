@@ -111,7 +111,10 @@ export default function MainPanel({
 
   return (
     <div ref={containerRef} className="flex flex-1 flex-col">
-      <div style={{ height: showSend ? `${splitRatio}%` : "100%" }}>
+      <div
+        className="flex flex-col min-h-0"
+        style={{ height: showSend ? `${splitRatio}%` : "100%" }}
+      >
         <LogMonitor
           entries={entries}
           onClear={() => setEntries([])}
